@@ -20,6 +20,24 @@
       </p>
     </section>
 
+    <section id="flow-intro">
+      <h2>Kick Off A Session</h2>
+      <p>
+        Each intake flows through the orchestrator: collect demographics, validate images, log vitals,
+        complete T.I.M.E scoring, resolve gaps, assemble the JSON case record, bind to the clinician PIN,
+        then sync. Let’s start by confirming you’re ready.
+      </p>
+
+      <div class="cta-card">
+        <div class="cta-message" id="cta-message">
+          <strong>Step 1:</strong> Confirm readiness to start the data capture flow.
+        </div>
+        <div class="cta-actions" id="cta-actions">
+          <button type="button" data-action="ready">Ready</button>
+        </div>
+      </div>
+    </section>
+
     <section>
       <h2>Design Principles</h2>
       <ul>
@@ -68,5 +86,51 @@
     <footer>
       <p>No clinical advice is ever provided by this application.</p>
     </footer>
+
+    <script>
+      const actions = document.querySelector("#cta-actions");
+      const message = document.querySelector("#cta-message");
+
+      const renderInputOptions = () => {
+        message.innerHTML =
+          "<strong>Step 2:</strong> How will the patient data be supplied? Select an intake modality.";
+        actions.innerHTML = `
+          <button type="button" data-mode="image">Image Upload</button>
+          <button type="button" data-mode="text">Structured Text</button>
+          <button type="button" data-mode="audio">Audio Transcript</button>
+        `;
+      };
+
+      const renderHandoff = (mode) => {
+        const modeLabel =
+          mode === "image"
+            ? "Wound imaging queued for QA"
+            : mode === "audio"
+            ? "Transcription agent primed"
+            : "Structured form ready";
+
+        message.innerHTML = `
+          <strong>Step 3:</strong> ${modeLabel}. Session Orchestrator is initializing the
+          agent stack for you (BIO intake → Wound Imaging QA → Vitals → T.I.M.E → Follow-up →
+          Assemble JSON → PIN binding → Export).`;
+        actions.innerHTML = `
+          <span class="handoff">AI agents are taking over from here. Clinician approval still required before storage.</span>
+        `;
+      };
+
+      actions.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLButtonElement)) return;
+
+        if (target.dataset.action === "ready") {
+          renderInputOptions();
+          return;
+        }
+
+        if (target.dataset.mode) {
+          renderHandoff(target.dataset.mode);
+        }
+      });
+    </script>
   </body>
 </html>
