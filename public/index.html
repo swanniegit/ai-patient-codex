@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Patient Codex</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>AI Patient Codex</h1>
+      <p class="tagline">Wound-care agent orchestration — clinician guided, privacy first.</p>
+    </header>
+
+    <section>
+      <h2>Agentic Flow Overview</h2>
+      <p>
+        The system captures structured wound-care data step by step, ensuring every field is
+        traceable, clinician approved, and stored in a single <code>CaseRecord</code> JSON document.
+      </p>
+    </section>
+
+    <section>
+      <h2>Design Principles</h2>
+      <ul>
+        <li>Clinician-in-the-loop validation at every checkpoint.</li>
+        <li>No medical advice — agents only collect, clarify, and summarize.</li>
+        <li>Strict privacy defaults with consent gating and PIN binding.</li>
+        <li>Structured outputs with provenance for every entry.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Core Agents</h2>
+      <ol>
+        <li>Session Orchestrator</li>
+        <li>Identity &amp; Consent Intake</li>
+        <li>OCR &amp; Transcription</li>
+        <li>Wound Imaging QA</li>
+        <li>Vitals</li>
+        <li>T.I.M.E Capture</li>
+        <li>Follow-up Resolution</li>
+        <li>Data Steward &amp; JSON Assembler</li>
+        <li>Security &amp; PIN Linker</li>
+        <li>Export &amp; Sync</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Guardrails</h2>
+      <ul>
+        <li>Neutral follow-ups only, no clinical advice.</li>
+        <li>Consent required before storage or export.</li>
+        <li>PII minimized and redacted in summaries.</li>
+        <li>Autosave snapshots on each state transition.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Docs &amp; Source</h2>
+      <p>
+        Explore the detailed specification in
+        <a href="https://github.com/christo/ai-patient-codex/blob/main/AGENTS.md">AGENTS.md</a>
+        on GitHub.
+      </p>
+    </section>
+
+    <footer>
+      <p>No clinical advice is ever provided by this application.</p>
+    </footer>
+  </body>
+</html>
