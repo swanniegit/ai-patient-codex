@@ -2,15 +2,17 @@ import { SupabaseCaseRecordRepository } from "../app/storage/supabaseRepository"
 import { createStubCaseRecord } from "./testUtils";
 import { SupabaseClientLike } from "../app/storage/types";
 
+type UpsertCall = Record<string, unknown> & { payload?: Record<string, unknown> };
+
 const buildClient = (): {
   calls: {
-    upsert: Array<Record<string, unknown>>;
+    upsert: Array<UpsertCall>;
     select: Array<number>;
   };
   client: SupabaseClientLike;
 } => {
   const calls = {
-    upsert: [] as Array<Record<string, unknown>>,
+    upsert: [] as Array<UpsertCall>,
     select: [] as Array<number>,
   };
 
@@ -74,7 +76,8 @@ describe("SupabaseCaseRecordRepository", () => {
     await repo.save(record);
     expect(calls.upsert.length).toBe(1);
     expect(calls.upsert[0].case_id).toBe(record.caseId);
-    expect(calls.upsert[0].payload.patient).toBeDefined();
+    const savedPayload = calls.upsert[0].payload as { patient?: unknown } | undefined;
+    expect(savedPayload?.patient).toBeDefined();
   });
 
   it("deserializes record on fetch", async () => {
