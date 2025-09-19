@@ -33,6 +33,11 @@ npm run lint
    ```bash
    ts-node codex/scripts/bootstrapSecrets.ts production
    ```
+   Required variables:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE` (or `SUPABASE_ANON_KEY` for read-only flows)
+   - `FIELD_ENCRYPTION_KEY`
+   - `PIN_HASH_PEPPER`
 3. Trigger deployment:
    ```bash
    vercel --prod

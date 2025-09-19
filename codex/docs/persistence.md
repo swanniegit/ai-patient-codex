@@ -12,6 +12,11 @@
 - `createAutosave(repo)` (`codex/app/storage/autosave.ts`) produces a function suitable for the `AgentRunContext.autosave` slot.
 - Pass this into orchestrator steps so every agent persists snapshots automatically.
 
+## Supabase Client Factory
+- `createSupabaseClient(config)` in `codex/app/storage/supabaseClient.ts` instantiates the JS client using `SUPABASE_URL` and either `SUPABASE_SERVICE_ROLE` or `SUPABASE_ANON_KEY`.
+- `createCaseRecordRepository(config)` combines the client with `SupabaseCaseRecordRepository` so you can inject persistence quickly.
+- Use `wrapClient(client)` if you already have an existing `SupabaseClient` instance and want to adapt it to the repository interface.
+
 ## Table Mapping
 | Column              | Source                                 |
 |---------------------|-----------------------------------------|
