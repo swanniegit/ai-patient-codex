@@ -1,0 +1,41 @@
+# Node / TypeScript
+node_modules/
+dist/
+build/
+.tmp/
+.temp/
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Environment / Secrets
+.env
+.env.*
+.vercel/
+.supabase/
+
+# Generated artifacts
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.vercel/output
+
+# Tests
+.jest-cache/
+.jest/
+
+# Supabase local
+supabase/.temp
+supabase/.branches

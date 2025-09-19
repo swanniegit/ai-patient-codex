@@ -1,0 +1,191 @@
+* **`/agents`** → each agent as a TypeScript file, with a standard interface.
+* **`/schemas`** → JSON/Zod schemas for validation.
+* **`/state`** → finite state machine orchestration.
+* **`/prompts`** → system prompts as `.md` files (for clarity + versioning).
+* **`/tests`** → edge case test harness.
+
+---
+
+```text
+codex/
+├── AGENTS.md
+├── agents/
+│   ├── Orchestrator.ts
+│   ├── BioAgent.ts
+│   ├── OcrAsrAgent.ts
+│   ├── WoundImagingAgent.ts
+│   ├── VitalsAgent.ts
+│   ├── TimeAgent.ts
+│   ├── FollowupAgent.ts
+│   ├── DataStewardAgent.ts
+│   ├── SecurityAgent.ts
+│   └── ExportAgent.ts
+├── schemas/
+│   ├── ArtifactRef.ts
+│   ├── PatientBio.ts
+│   ├── WoundPhoto.ts
+│   ├── Vitals.ts
+│   ├── TimeBlock.ts
+│   └── CaseRecord.ts
+├── state/
+│   ├── StateMachine.ts
+│   └── transitions.ts
+├── prompts/
+│   ├── global.md
+│   ├── bio.md
+│   ├── imaging.md
+│   ├── vitals.md
+│   ├── time.md
+│   ├── followup.md
+│   ├── steward.md
+│   └── security.md
+└── tests/
+    ├── bio.test.ts
+    ├── imaging.test.ts
+    ├── vitals.test.ts
+    ├── time.test.ts
+    └── caseRecordValidation.test.ts
+```
+
+---
+
+### Example Agent Interface
+
+```ts
+// agents/AgentInterface.ts
+import { CaseRecord } from "../schemas/CaseRecord";
+
+export interface Agent<TInput = any, TOutput = any> {
+  name: string;
+  run(input: TInput, record: CaseRecord): Promise<TOutput>;
+}
+```
+
+---
+
+### Example Schema (Zod)
+
+```ts
+// schemas/CaseRecord.ts
+import { z } from "zod";
+import { PatientBio } from "./PatientBio";
+import { WoundPhoto } from "./WoundPhoto";
+import { Vitals } from "./Vitals";
+import { TimeBlock } from "./TimeBlock";
+
+export const CaseRecord = z.object({
+  case_id: z.string().uuid(),
+  clinician_id: z.string().uuid(),
+  clinician_pin_hash: z.string(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+  patient: PatientBio,
+  wounds: z.object({
+    site: z.string().optional(),
+    photos: z.array(WoundPhoto)
+  }),
+  vitals: Vitals.optional(),
+  time: TimeBlock.optional(),
+  followups: z.array(z.object({
+    question: z.string(),
+    answer: z.string(),
+    timestamp: z.string().datetime()
+  })).default([]),
+  attachments: z.array(z.any()).default([]),
+  provenance_log: z.array(z.any()).default([]),
+  storage_meta: z.object({
+    version: z.number().default(1),
+    schema: z.string().default("codex.wound.v1")
+  })
+});
+
+export type CaseRecord = z.infer<typeof CaseRecord>;
+```
+
+---
+
+### Example Orchestrator (Finite State)
+
+```ts
+// state/StateMachine.ts
+import { CaseRecord } from "../schemas/CaseRecord";
+
+export type State =
+  | "BIO_INTAKE"
+  | "WOUND_IMAGING"
+  | "VITALS"
+  | "TIME"
+  | "FOLLOW_UP"
+  | "REVIEW"
+  | "ASSEMBLE_JSON"
+  | "LINK_TO_CLINICIAN"
+  | "STORE_SYNC"
+  | "DONE";
+
+export class Orchestrator {
+  private state: State = "BIO_INTAKE";
+  private record: CaseRecord;
+
+  constructor(initialRecord: CaseRecord) {
+    this.record = initialRecord;
+  }
+
+  public current() {
+    return { state: this.state, record: this.record };
+  }
+
+  public async transition(event: string, payload?: any) {
+    // TODO: implement transitions with guards
+    console.log(`Transition: ${this.state} -> ${event}`);
+  }
+}
+```
+
+---
+
+### Example Prompt File
+
+```md
+# prompts/vitals.md
+
+**Role:** Vitals Agent
+
+**Task:**  
+Collect vitals with units and timestamps.  
+Do not interpret or flag thresholds.  
+Ask for missing units explicitly.  
+Accept "unknown" if clinician cannot provide a value.  
+```
+
+---
+
+### Example Test
+
+```ts
+// tests/caseRecordValidation.test.ts
+import { CaseRecord } from "../schemas/CaseRecord";
+
+describe("CaseRecord validation", () => {
+  it("should reject case with TIME tissue % > 100", () => {
+    const invalid = {
+      case_id: "123e4567-e89b-12d3-a456-426614174000",
+      clinician_id: "123e4567-e89b-12d3-a456-426614174001",
+      clinician_pin_hash: "hash",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      patient: { first_name: "Jane", consent: { data_storage: true, photography: true, sharing_to_team_board: false } },
+      wounds: { photos: [] },
+      time: { tissue: { slough_pct: 50, necrotic_pct: 60 } }
+    };
+    const result = CaseRecord.safeParse(invalid);
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+---
+
+👉 Next step: I can fill in the **agent stubs** (e.g., `BioAgent.ts`, `WoundImagingAgent.ts`) with standard methods (`run(input, record)`) and some inline prompt templates, so you can immediately plug into your LLM function calls.
+
+Do you want me to generate **all the agent stubs with boilerplate code** so you can start coding, or just a couple as working examples?
+

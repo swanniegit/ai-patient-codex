@@ -1,0 +1,18 @@
+import { createSessionEnvironment } from "../app/session";
+import { createStubCaseRecord } from "./testUtils";
+import { CaseRecordRepository } from "../app/storage/types";
+
+const repo: CaseRecordRepository = {
+  save: async () => undefined,
+  fetchById: async () => null,
+};
+
+describe("createSessionEnvironment", () => {
+  it("provides orchestrator and context with autosave", () => {
+    process.env.FIELD_ENCRYPTION_KEY = Buffer.alloc(32, 4).toString("base64");
+    const record = createStubCaseRecord();
+    const { orchestrator, context } = createSessionEnvironment(record, { repository: repo });
+    expect(orchestrator.state.state).toBe("START");
+    expect(typeof context.autosave).toBe("function");
+  });
+});
