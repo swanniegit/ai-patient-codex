@@ -1,8 +1,9 @@
 import path from "path";
 import { promises as fs } from "fs";
-import { AgentDependencies, AgentLogger, PromptLoader } from "../agents/AgentContext";
+import { AgentDependencies, AgentLogger, LlmClient, PromptLoader } from "../agents/AgentContext";
 import { CryptoProvider } from "../crypto/types";
 import { EnvKeyCryptoProvider, EnvKeyCryptoProviderOptions } from "../crypto/provider";
+import { createGeminiClient, GeminiClientOptions } from "./llm";
 
 class FilePromptLoader implements PromptLoader {
   constructor(private readonly baseDir: string) {}
@@ -20,6 +21,8 @@ export interface DependencyOptions {
   logger?: AgentLogger;
   cryptoProvider?: CryptoProvider;
   cryptoOptions?: EnvKeyCryptoProviderOptions;
+  llmClient?: LlmClient;
+  llmOptions?: GeminiClientOptions;
 }
 
 export const createAgentDependencies = (options: DependencyOptions = {}): AgentDependencies => {
@@ -36,9 +39,25 @@ export const createAgentDependencies = (options: DependencyOptions = {}): AgentD
     }
   }
 
+  let llm = options.llmClient;
+  const shouldInitLlm =
+    !llm && Boolean(options.llmOptions?.apiKey ?? process.env.GEMINI_API_KEY);
+  if (shouldInitLlm) {
+    try {
+      llm = createGeminiClient({
+        ...options.llmOptions,
+        logger: options.logger,
+      });
+    } catch (error) {
+      options.logger?.warn?.("LLM client unavailable", { error });
+      llm = undefined;
+    }
+  }
+
   return {
     promptLoader,
     logger: options.logger,
     cryptoProvider,
+    llm,
   };
 };

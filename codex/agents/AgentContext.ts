@@ -28,8 +28,35 @@ export interface AgentResult<TOutput> {
   provenance?: ProvenanceEntry[];
 }
 
+export interface LlmMessage {
+  role: "user" | "model" | "system";
+  content: string;
+}
+
+export interface LlmGenerateOptions {
+  input?: string;
+  messages?: LlmMessage[];
+  systemPrompt?: string;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  maxOutputTokens?: number;
+  stopSequences?: string[];
+  signal?: AbortSignal;
+}
+
+export interface LlmGenerateResult {
+  text: string;
+  raw?: unknown;
+}
+
+export interface LlmClient {
+  generate(options: LlmGenerateOptions): Promise<LlmGenerateResult>;
+}
+
 export interface AgentDependencies {
   promptLoader: PromptLoader;
   logger?: AgentLogger;
   cryptoProvider?: CryptoProvider;
+  llm?: LlmClient;
 }

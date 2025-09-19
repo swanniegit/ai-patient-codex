@@ -4,19 +4,19 @@ import { SupabaseClientLike } from "../app/storage/types";
 
 const buildClient = (): {
   calls: {
-    upsert: Array<any>;
-    select: Array<any>;
+    upsert: Array<Record<string, unknown>>;
+    select: Array<number>;
   };
   client: SupabaseClientLike;
 } => {
   const calls = {
-    upsert: [] as Array<any>,
-    select: [] as Array<any>,
+    upsert: [] as Array<Record<string, unknown>>,
+    select: [] as Array<number>,
   };
 
   const client: SupabaseClientLike = {
     from: () => ({
-      upsert: async (value) => {
+      upsert: async (value: Record<string, unknown>) => {
         calls.upsert.push(value);
         return { data: null, error: null };
       },

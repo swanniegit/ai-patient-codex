@@ -17,6 +17,14 @@ module.exports = {
     "plugin:import/typescript",
     "prettier"
   ],
+  settings: {
+    "import/resolver": {
+      node: {
+        extensions: [".js", ".ts"],
+      },
+    },
+    "import/core-modules": ["vitest/config"],
+  },
   rules: {
     "unused-imports/no-unused-imports": "error",
     "import/order": [

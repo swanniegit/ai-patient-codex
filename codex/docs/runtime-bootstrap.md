@@ -24,6 +24,8 @@ const orchestrator = buildOrchestrator(createStubCaseRecord());
 
 ## Environment Expectations
 - Set `FIELD_ENCRYPTION_KEY` (base64 32-byte key) before bootstrapping in production; optionally define `FIELD_ENCRYPTION_KEY_VERSION` and legacy key map for rotations.
+- Provide `GEMINI_API_KEY` (and optional `GEMINI_MODEL`) so the dependency factory can wire a Gemini-backed LLM client for prompt flows.
+- Define `SUPABASE_URL` plus either `SUPABASE_SERVICE_ROLE` or `SUPABASE_ANON_KEY` to auto-create the live case-record repository when building session environments.
 - Other dependencies (Supabase clients, logging backends) can be added to `DependencyOptions` as the integration surface grows.
 
 ## Persistence Integration

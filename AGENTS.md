@@ -1,164 +1,35 @@
-````markdown
-# AGENTS.md — Wound-Care Patient App (Agentic Flow)
+# Repository Guidelines
 
-> **Purpose**  
-> A privacy-first, clinician-guided agent system that captures wound-care data step-by-step, validates inputs, and stores a single, structured JSON record per case.  
-> **Hard rule:** Agents **NEVER** give medical advice. They can collect information, ask neutral follow-ups, summarize, and suggest posting to the team chat/board for clinical discussion.
+## Project Structure & Module Organization
+- Core TypeScript lives in `codex/`: `agents/` holds agent flows, `state/` the session machine, `schemas/` Zod models, and `scripts/` utility tasks.
+- Security, persistence, and operational docs are in `codex/db/` and `codex/docs/`; review `security-plan.md` before changing auth or storage.
+- Tests sit in `codex/tests/` (mirroring module names), static assets in `public/`, and compiled builds in `dist/`.
 
----
+## Build, Test, and Development Commands
+- `npm install` — install dependencies.
+- `npm run build` — run `tsc` for type and schema validation.
+- `npm run test` — execute the Vitest suite once; required before pushing.
+- `npm run test:watch` — watch mode while iterating on flows.
+- `npm run lint` — ESLint with TypeScript + unused-imports; resolve findings before committing.
 
-## 1. Design Principles
+## Coding Style & Naming Conventions
+- Write modern TypeScript with ES modules, two-space indentation, and ≤100 character lines.
+- Prefer named exports; suffix agent implementations with `Agent` and keep schemas singular PascalCase (e.g., `CaseRecord.ts`).
+- Follow the repo ESLint/Prettier defaults; remove console logging and commented blocks prior to review.
 
-- **Clinician-in-the-loop:** Every step is confirmable/editable; agents propose, clinicians approve.  
-- **Evidence-based inputs, not advice:** Agents request facts, clarify ambiguity, and stop short of recommendations.  
-- **Bias to structure:** All outputs converge into one JSON schema (`CaseRecord`).  
-- **Privacy & consent by default:** Minimize PII, encrypt at rest, and bind cases to clinicians via a **private PIN**.  
-- **Robust on low signal:** Handle noisy images, partial demographics, offline mode, and retries gracefully.  
-- **Traceability:** Every field includes `provenance` (who/what filled it, when, and with which artifact).  
+## Testing Guidelines
+- Place specs in `codex/tests/` using `{module}.test.ts`; reuse helpers from `testUtils.ts`.
+- Cover orchestrator transitions, schema guards, Supabase adapters, and “no clinical advice” guardrails with explicit assertions.
+- Add failing tests before implementing features; confirm `npm run test` (and any focused suites) passes locally.
+- Highlight significant coverage gaps in PRs and propose follow-up tasks when risk remains.
 
----
+## Commit & Pull Request Guidelines
+- Keep commits focused; use imperative messages referencing the area (e.g., `Add PIN linker audit trail`).
+- Link tickets or issues in commits/PRs when available; squash merges after approval.
+- PRs must include a purpose summary, functional changes, test evidence, and security or compliance notes when applicable.
+- Mark PRs ready once linting, tests, and documentation/schema updates are complete; notify downstreams if agent prompts or JSON schemas change.
 
-## 2. Agent Roster
-
-1. **Session Orchestrator** — controls the flow and state machine.  
-2. **Identity & Consent Agent (BIO Intake)** — gathers patient demographics + consent.  
-3. **OCR & Transcription Agent** — extracts text/audio data with confidence scores.  
-4. **Wound Imaging QA Agent** — checks clarity, confirms scale, requests retakes.  
-5. **Vitals Agent** — collects structured vitals with units and timestamps.  
-6. **T.I.M.E Agent** — captures Tissue, Infection/Inflammation, Moisture, Edge.  
-7. **Follow-up Questioning Agent** — resolves missing/contradictory fields only.  
-8. **Data Steward & JSON Assembler** — validates and outputs `CaseRecord`.  
-9. **Security & PIN Linker** — binds records to clinician via PIN.  
-10. **Export & Sync Agent** — stores securely and emits event hooks.  
-
----
-
-## 3. State Machine
-
-```text
-START
- ├─▶ BIO_INTAKE
- ├─▶ WOUND_IMAGING
- ├─▶ VITALS
- ├─▶ TIME
- ├─▶ FOLLOW_UP
- ├─▶ REVIEW
- ├─▶ ASSEMBLE_JSON
- ├─▶ LINK_TO_CLINICIAN
- └─▶ STORE/SYNC → DONE
-````
-
-* **Recoverability:** Any state can roll back.
-* **Autosave:** Snapshot `CaseRecord` at each step.
-
----
-
-## 4. Input/Output Contracts
-
-* **Artifacts** carry metadata about input sources.
-* **PatientBio, WoundPhoto, Vitals, TIMEBlock** are structured deltas.
-* **CaseRecord** is the final schema (JSON).
-
----
-
-## 5. Guardrails
-
-* **No advice:** Always redirect to the team chat board.
-* **Neutral follow-ups only.**
-* **Consent required** before storage/export.
-* **Ambiguity handled** via dropdowns/scales.
-* **PII minimized** and redacted in summaries.
-
----
-
-## 6. Prompt Templates
-
-**Global preamble:**
-
-```
-You are a data-collection assistant for a wound-care app.
-You MUST NOT provide clinical advice or recommendations.
-Capture inputs, ask neutral clarifications, and assemble JSON CaseRecords.
-```
-
-* **BIO Agent:** Extract patient demographics + consent.
-* **Imaging QA:** Validate clarity, scale, identifiers.
-* **Vitals Agent:** Record vitals with units, no interpretation.
-* **T.I.M.E Agent:** Capture structured wound details.
-* **Follow-up Agent:** Ask only for missing/contradictory fields.
-* **Data Steward:** Assemble/validate JSON, attach provenance.
-
----
-
-## 7. Image QA Checklist
-
-* Framing (whole wound visible)
-* Focus (no blur)
-* Lighting (even, no glare)
-* Scale (ruler/grid, else confirm estimated)
-* Optional patient/date tag
-
----
-
-## 8. Example Flow
-
-* **BIO via label image:** OCR → “Detected: Jane Doe (93%). Confirm?”
-* **Wound photo without scale:** → “No scale detected. Proceed with estimated size?”
-* **Follow-up:** → “Missing exudate level. Options: none/scant/moderate/heavy.”
-
----
-
-## 9. Storage & Security
-
-* **Supabase/Postgres** with row-level security.
-* **PIN binding** via `pin_hash`.
-* **Artifacts table** for image/audio references.
-* **Audit log** in provenance.
-* **PII minimization** enforced.
-
----
-
-## 10. Validation Rules
-
-* Birthdate vs. age consistency.
-* Units required for vitals.
-* TIME % totals ≤ 100.
-* At least one valid wound image or clinician override.
-
----
-
-## 11. Definition of Done
-
-* [ ] Agents callable with system prompts
-* [ ] State machine transitions + autosave
-* [ ] JSON schema validation + versioning
-* [ ] PIN login & RLS enforcement
-* [ ] Imaging QA with automated checks
-* [ ] Consent enforcement
-* [ ] Redacted chat summary endpoint
-* [ ] Test matrix passes edge cases
-
----
-
-## 12. Redacted Chat Summary Example
-
-```
-Case: {case_id_short} • Site: {site} • {N} photos
-TIME: T[{granulation/slough/necrotic %}] I[{exudate}] M[{dryness}] E[{edge flags}]
-Vitals: BP {sys}/{dia}, HR {hr}, Temp {temp_c}°C
-Notes: {neutral notes}
-(No clinical advice provided.)
-```
-
----
-
-**Schema Version:** `codex.wound.v1`
-**Status:** Draft 1.0
-
-```
-
----
-
-Would you like me to also scaffold this into a **repo-ready folder structure** (e.g., `/agents/BioAgent.ts`, `/agents/WoundQAAgent.ts`, `/schemas/CaseRecord.ts`), or do you just want the markdown doc for now?
-```
-
+## Security & Agent Guardrails
+- Do not store PHI or clinical advice in logs or commits; redact identifiers per `codex/docs/security-plan.md`.
+- Preserve provenance, consent, and clinician PIN linkage whenever editing agents or exporters.
+- Validate Supabase RLS and encryption changes with updates to `codex/tests/supabaseRepository.test.ts`, and request a security review.

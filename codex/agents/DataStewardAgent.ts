@@ -102,15 +102,20 @@ export class DataStewardAgent implements Agent<DataStewardInput, DataStewardOutp
   }
 
   private setValueByPath(target: unknown, path: string, value: unknown): void {
+    if (!target || typeof target !== "object") {
+      return;
+    }
+
     const segments = path.split(".");
     const last = segments.pop();
     if (!last) return;
-    let cursor: any = target;
+
+    let cursor = target as Record<string, unknown>;
     for (const segment of segments) {
-      if (!cursor[segment]) {
+      if (typeof cursor[segment] !== "object" || cursor[segment] === null) {
         cursor[segment] = {};
       }
-      cursor = cursor[segment];
+      cursor = cursor[segment] as Record<string, unknown>;
     }
     cursor[last] = value;
   }

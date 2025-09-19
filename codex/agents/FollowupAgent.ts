@@ -21,11 +21,13 @@ export class FollowupAgent implements Agent<FollowupAgentInput, FollowupAgentOut
     context: AgentRunContext
   ): Promise<AgentResult<FollowupAgentOutput>> {
     const unresolved = input.openItems.filter((item) => item.status === "pending");
-    const questions = unresolved.map((item) => ({
+    const stamped = unresolved.map((item) => ({
       ...item,
       question: this.ensureNeutralTone(item.question),
       timestamp: new Date().toISOString(),
     }));
+
+    const questions = await this.normalizeWithLlm(stamped, context);
 
     const nextRecord = {
       ...context.record,
@@ -50,6 +52,59 @@ export class FollowupAgent implements Agent<FollowupAgentInput, FollowupAgentOut
         },
       ],
     };
+  }
+
+  private async normalizeWithLlm(items: FollowUpItem[], context: AgentRunContext): Promise<FollowUpItem[]> {
+    if (!this.deps.llm || items.length === 0 || !this.promptPath) {
+      return items;
+    }
+
+    try {
+      const systemPrompt = await this.deps.promptLoader.load(this.promptPath);
+      const payload = JSON.stringify({ questions: items.map((item) => item.question) });
+      const instruction = 'Rewrite these follow-up questions in a neutral, clinician-review tone. Respond with a JSON object {"questions": string[]} matching the provided order. Do not add advice. Questions: ';
+      const response = await this.deps.llm.generate({
+        systemPrompt,
+        input: instruction + payload,
+        temperature: 0.2,
+        maxOutputTokens: 256,
+      });
+
+      const parsed = this.parseLlmResponse(response.text);
+      if (!parsed) {
+        return items;
+      }
+
+      return items.map((item, index) => {
+        const candidate = parsed[index];
+        const rewritten = typeof candidate === "string" ? candidate.trim() : "";
+        const question = rewritten ? this.ensureNeutralTone(rewritten) : item.question;
+        return { ...item, question };
+      });
+    } catch (error) {
+      context.logger?.warn?.("LLM normalization failed", { error });
+      return items;
+    }
+  }
+
+  private parseLlmResponse(output: string): string[] | null {
+    if (!output) return null;
+    const trimmed = output.trim();
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      if (parsed && typeof parsed === "object") {
+        const candidate = (parsed as { questions?: unknown }).questions;
+        if (Array.isArray(candidate)) {
+          return candidate.filter((entry): entry is string => typeof entry === "string");
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
   }
 
   private ensureNeutralTone(question: string): string {
