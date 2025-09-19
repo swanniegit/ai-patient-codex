@@ -2,8 +2,14 @@ import { Agent } from "./AgentInterface";
 import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
 import { Vitals } from "../schemas/Vitals";
 
+type DeepPartial<T> = T extends (infer U)[]
+  ? Array<DeepPartial<U>>
+  : T extends object
+    ? { [K in keyof T]?: DeepPartial<T[K]> }
+    : T;
+
 export interface VitalsAgentInput {
-  vitals: Partial<Vitals>;
+  vitals: DeepPartial<Vitals>;
 }
 
 export interface VitalsAgentOutput {

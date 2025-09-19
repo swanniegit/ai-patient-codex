@@ -1,7 +1,7 @@
 import { CaseRecord } from "../../schemas/CaseRecord";
 import { CaseRecordRepository, SupabaseClientLike } from "./types";
 
-interface CaseRecordRow {
+interface CaseRecordRow extends Record<string, unknown> {
   case_id: string;
   clinician_id: string;
   clinician_pin_hash: string;

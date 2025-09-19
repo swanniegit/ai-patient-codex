@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/postgrest-js";
 import { SupabaseCaseRecordRepository } from "./supabaseRepository";
 import { CaseRecordRepository, SupabaseClientLike } from "./types";
 
@@ -30,13 +31,35 @@ export const createCaseRecordRepository = (config: SupabaseConfig = {}): CaseRec
   return new SupabaseCaseRecordRepository(wrapClient(client));
 };
 
+const normalizeError = (error: PostgrestError | null): Error | null => {
+  if (!error) return null;
+  const normalized = new Error(error.message ?? "Supabase request failed");
+  normalized.name = error.code ?? "PostgrestError";
+  (normalized as Error & { cause?: unknown }).cause = error;
+  return normalized;
+};
+
 export const wrapClient = (client: SupabaseClient): SupabaseClientLike => ({
   from(table) {
     return {
-      upsert: (value, options) => client.from(table).upsert(value, options),
-      select: (columns) => ({
-        eq: (column, value) => client.from(table).select(columns ?? "*").eq(column as string, value),
-      }),
+      async upsert(value, options) {
+        const response = await client.from(table).upsert(value, options);
+        return {
+          data: (response.data ?? null) as unknown,
+          error: normalizeError(response.error),
+        };
+      },
+      select(columns) {
+        return {
+          async eq(column, value) {
+            const response = await client.from(table).select(columns ?? "*").eq(column as string, value);
+            return {
+              data: (response.data ?? null) as Array<Record<string, unknown>> | null,
+              error: normalizeError(response.error),
+            };
+          },
+        };
+      },
     };
   },
 });

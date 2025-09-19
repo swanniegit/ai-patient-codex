@@ -12,6 +12,7 @@ import { createFollowupAgent } from "../agents/FollowupAgent";
 import { createDataStewardAgent } from "../agents/DataStewardAgent";
 import { createSecurityAgent } from "../agents/SecurityAgent";
 import { createExportAgent } from "../agents/ExportAgent";
+import { AgentFactory } from "../agents/AgentInterface";
 
 export interface OrchestratorOptions extends DependencyOptions {
   initialState?: SessionState;
@@ -23,7 +24,7 @@ export const buildOrchestrator = (record: CaseRecord, options: OrchestratorOptio
   const initialState = options.initialState ?? "START";
   const machine = new StateMachine(record, initialState);
 
-  const agentFactories: Partial<Record<SessionState, (deps: Parameters<typeof createBioAgent>[0]) => ReturnType<typeof createBioAgent>>> = {
+  const agentFactories: Partial<Record<SessionState, AgentFactory>> = {
     BIO_INTAKE: createBioAgent,
     WOUND_IMAGING: createWoundImagingAgent,
     VITALS: createVitalsAgent,
