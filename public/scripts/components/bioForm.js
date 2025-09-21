@@ -1,13 +1,10 @@
 import { mergePayloads } from "../utils/mergePayloads.js";
 
-const SAVE_DEBOUNCE_MS = 180;
-
 export const registerBioForm = ({ form, confirmButton, store, client }) => {
   if (!form) {
     throw new Error("Missing bio form element");
   }
 
-  let debounceTimer = null;
   let pendingPatch = null;
   let inFlightController = null;
 
@@ -34,32 +31,27 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
     }
   };
 
-  const schedulePatch = (patch) => {
-    pendingPatch = mergePayloads(pendingPatch, patch);
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    debounceTimer = setTimeout(() => {
-      flushPatch();
-    }, SAVE_DEBOUNCE_MS);
+  const markUnsaved = () => {
+    store.setState({ phase: "ready", message: "Unsaved changes", error: null });
   };
 
   const applyPatch = (patch) => {
+    pendingPatch = mergePayloads(pendingPatch, patch);
     store.applyLocalPatch(patch);
-    store.setState({ phase: "saving", message: "Saving...", error: null });
-    schedulePatch(patch);
   };
 
   form.addEventListener("input", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
     applyPatch(patch);
+    markUnsaved();
   });
 
   form.addEventListener("change", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
     applyPatch(patch);
+    flushPatch();
   });
 
   if (confirmButton) {
@@ -67,9 +59,9 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
       if (pendingPatch) {
         await flushPatch();
       }
-      store.setState({ phase: "confirming", message: "Confirming...", error: null });
-      try {
-        const result = await client.confirmBio();
+    store.setState({ phase: "confirming", message: "Confirming...", error: null });
+     try {
+       const result = await client.confirmBio();
         if (result.ok) {
           const snapshot = await client.getSnapshot();
           store.setState({ snapshot, phase: "ready", message: "Bio intake complete", error: null });
