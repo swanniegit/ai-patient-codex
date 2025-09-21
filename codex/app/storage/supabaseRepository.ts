@@ -34,6 +34,7 @@ const serialize = (record: CaseRecord): CaseRecordRow => ({
     version: record.storageMeta.version,
     schema: record.storageMeta.schema,
     state: record.storageMeta.state,
+    pinIssuedAt: record.storageMeta.pinIssuedAt ?? null,
   },
   payload: buildPayload(record),
   encrypted_fields: record.encryptedFields,
@@ -43,7 +44,8 @@ const serialize = (record: CaseRecord): CaseRecordRow => ({
   updated_at: record.updatedAt,
 });
 
-const normalizeTimestamp = (value: string): string => {
+const normalizeTimestamp = (value: string | null | undefined): string | undefined => {
+  if (!value) return undefined;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     throw new Error(`Invalid timestamp: ${value}`);
@@ -52,13 +54,19 @@ const normalizeTimestamp = (value: string): string => {
 };
 
 const deserialize = (row: CaseRecordRow): CaseRecord => {
+  const rawMeta = (row.storage_meta ?? {}) as Record<string, unknown>;
   const base = {
     caseId: row.case_id,
     clinicianId: row.clinician_id,
     clinicianPinHash: row.clinician_pin_hash,
-    storageMeta: row.storage_meta,
-    createdAt: normalizeTimestamp(row.created_at),
-    updatedAt: normalizeTimestamp(row.updated_at),
+    storageMeta: {
+      version: typeof rawMeta.version === "number" ? rawMeta.version : undefined,
+      schema: typeof rawMeta.schema === "string" ? rawMeta.schema : undefined,
+      state: typeof rawMeta.state === "string" ? rawMeta.state : undefined,
+      pinIssuedAt: normalizeTimestamp(rawMeta.pinIssuedAt as string | undefined),
+    },
+    createdAt: normalizeTimestamp(row.created_at)!,
+    updatedAt: normalizeTimestamp(row.updated_at)!,
     consentGranted: row.consent_granted,
     status: row.status as CaseRecord["status"],
     encryptedFields: row.encrypted_fields ?? {},

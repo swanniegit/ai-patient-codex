@@ -4,6 +4,7 @@ import sessionHandler from "../../api/session/index.js";
 import bioHandler from "../../api/session/bio.js";
 import confirmHandler from "../../api/session/bio/confirm.js";
 import eventHandler from "../../api/session/events/[event].js";
+import pinHandler from "../../api/session/pin.js";
 import { resetSessionRuntime } from "../server/sessionRuntime/index.js";
 
 interface MockRequestOptions {
@@ -84,6 +85,7 @@ const CLINICIAN_B = "11111111-aaaa-bbbb-cccc-222222222222";
 describe("API session handlers", () => {
   beforeEach(() => {
     resetSessionRuntime();
+    process.env.PIN_HASH_PEPPER = "test-pepper";
   });
 
   it("returns 400 when identifiers are missing", async () => {
@@ -188,5 +190,24 @@ describe("API session handlers", () => {
     });
 
     expect(snapshot.body.state).toBe("WOUND_IMAGING");
+  });
+
+  it("issues a clinician PIN", async () => {
+    await runHandler(sessionHandler, {
+      method: "GET",
+      url: "/api/session",
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
+    });
+
+    const response = await runHandler(pinHandler, {
+      method: "POST",
+      url: "/api/session/pin",
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.pin).toMatch(/^[0-9]{6}$/);
+    expect(typeof response.body.issuedAt).toBe("string");
+    expect(response.body.snapshot.record.storageMeta.pinIssuedAt).toBe(response.body.issuedAt);
   });
 });

@@ -50,6 +50,13 @@ export class SessionClient {
     });
   }
 
+  async generatePin(signal) {
+    return this.#request("/session/pin", {
+      method: "POST",
+      signal,
+    });
+  }
+
   async #request(path, options) {
     if (!this.identity?.sessionId || !this.identity?.clinicianId) {
       throw new Error("Missing session identity; call setIdentity first");

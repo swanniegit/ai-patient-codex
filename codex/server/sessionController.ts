@@ -90,6 +90,23 @@ export class SessionController {
     return this.transitionState(event);
   }
 
+  async assignPin(hash: string, issuedAt: string): Promise<SessionSnapshot> {
+    this.record = {
+      ...this.record,
+      clinicianPinHash: hash,
+      storageMeta: {
+        ...this.record.storageMeta,
+        pinIssuedAt: issuedAt,
+      },
+      updatedAt: issuedAt,
+    };
+    this.context.record = this.record;
+    if (this.context.autosave) {
+      await this.context.autosave(this.record);
+    }
+    return this.snapshot();
+  }
+
   private sanitizeInput(input: BioAgentInput): BioAgentInput {
     return {
       patient: this.cleanPatient(input.patient),

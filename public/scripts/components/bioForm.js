@@ -73,6 +73,19 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
         if (result.ok) {
           const snapshot = await client.getSnapshot();
           store.setState({ snapshot, phase: "ready", message: "Bio intake complete", error: null });
+          try {
+            const response = await client.generatePin();
+            const nextSnapshot = response?.snapshot ?? snapshot;
+            store.setState({
+              snapshot: nextSnapshot,
+              phase: "ready",
+              message: response?.pin ? `Bio intake complete · PIN ${response.pin}` : "Bio intake complete",
+              error: null,
+            });
+          } catch (pinError) {
+            const message = pinError instanceof Error ? pinError.message : "PIN generation failed";
+            store.setState({ phase: "ready", message, error: message });
+          }
         } else {
           const missing = result.missingFields.join(", ") || "fields";
           store.setState({

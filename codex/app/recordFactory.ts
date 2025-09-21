@@ -18,6 +18,7 @@ export const createBlankCaseRecord = (overrides: Partial<CaseRecord> = {}): Case
       version: 1,
       schema: "codex.wound.v1",
       state: "BIO_INTAKE",
+      pinIssuedAt: undefined,
     },
     patient: {
       consent: {

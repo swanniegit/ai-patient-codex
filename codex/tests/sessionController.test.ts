@@ -101,4 +101,12 @@ describe("SessionController", () => {
     expect(snapshot.state).toBe("WOUND_IMAGING");
     expect(snapshot.record.storageMeta.state).toBe("WOUND_IMAGING");
   });
+
+  it("assigns a PIN and persists issued timestamp", async () => {
+    const controller = new SessionController();
+    const issuedAt = new Date().toISOString();
+    const snapshot = await controller.assignPin("hashed", issuedAt);
+    expect(snapshot.record.clinicianPinHash).toBe("hashed");
+    expect(snapshot.record.storageMeta.pinIssuedAt).toBe(issuedAt);
+  });
 });

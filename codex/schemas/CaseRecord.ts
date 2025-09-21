@@ -42,14 +42,16 @@ export const WoundSection = z.object({
 
 const StorageMeta = z
   .object({
-    version: z.number().default(1),
-    schema: z.string().default("codex.wound.v1"),
+    version: z.number().optional(),
+    schema: z.string().optional(),
     state: z.enum(SESSION_STATES).optional(),
+    pinIssuedAt: z.string().datetime().optional(),
   })
   .transform((meta) => ({
     version: meta.version ?? 1,
     schema: meta.schema ?? "codex.wound.v1",
     state: meta.state ?? "BIO_INTAKE",
+    pinIssuedAt: meta.pinIssuedAt ?? undefined,
   }));
 
 export const CaseRecord = z.object({
