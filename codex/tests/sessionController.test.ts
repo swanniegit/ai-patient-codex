@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SessionController } from "../server/sessionController";
-import { createSessionController, resetSessionRuntime } from "../server/sessionRuntime";
+import { createSessionController, resetSessionRuntime } from "../server/sessionRuntime/index.js";
 import { MemoryCaseRecordRepository } from "../app/storage/memoryRepository";
 import { createBlankCaseRecord } from "../app/recordFactory";
 

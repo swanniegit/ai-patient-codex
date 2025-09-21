@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import sessionHandler from "../../api/session/index";
 import bioHandler from "../../api/session/bio";
 import confirmHandler from "../../api/session/bio/confirm";
-import { resetSessionRuntime } from "../server/sessionRuntime";
+import { resetSessionRuntime } from "../server/sessionRuntime/index.js";
 
 interface MockRequestOptions {
   method: string;

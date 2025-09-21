@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { extname, join, sep } from "node:path";
 import { URL } from "node:url";
 import { BioAgentInput } from "../agents/BioAgent";
-import { createSessionController } from "./sessionRuntime";
+import { createSessionController } from "./sessionRuntime/index.js";
 import { extractRequestContext } from "./requestContext";
 import { handleError, sendJson, readJsonBody } from "./httpHelpers";
 

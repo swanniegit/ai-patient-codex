@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createSessionController } from "../../codex/server/sessionRuntime";
+import { createSessionController } from "../../codex/server/sessionRuntime/index.js";
 import { extractRequestContext } from "../../codex/server/requestContext";
 import { handleError, sendJson, sendMethodNotAllowed } from "../../codex/server/httpHelpers";
 
