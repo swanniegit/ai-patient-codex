@@ -28,6 +28,12 @@ const orchestrator = buildOrchestrator(createStubCaseRecord());
 - Define `SUPABASE_URL` plus either `SUPABASE_SERVICE_ROLE` or `SUPABASE_ANON_KEY` to auto-create the live case-record repository when building session environments.
 - Other dependencies (Supabase clients, logging backends) can be added to `DependencyOptions` as the integration surface grows.
 
+## Repository Wiring
+- `createSessionController({ caseId })` (`codex/server/sessionRuntime.ts`) resolves the backing repository per request.
+- When Supabase env vars are present, it instantiates `SupabaseCaseRecordRepository`; otherwise an in-memory repository is reused per case ID within the runtime.
+- Existing records hydrate via `repository.fetchById(caseId)`; blank sessions fall back to `createBlankCaseRecord({ caseId })`.
+- Autosave hooks persist updates on each agent run, ensuring `/api/session/*` routes serve the latest case snapshot.
+
 ## Persistence Integration
 - `SupabaseCaseRecordRepository` lives in `codex/app/storage/supabaseRepository.ts` and conforms to `CaseRecordRepository`.
 - Use `createAutosave(repo)` (`codex/app/storage/autosave.ts`) to wire the repository into `AgentRunContext.autosave` when driving the orchestrator.

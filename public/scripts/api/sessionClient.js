@@ -9,8 +9,8 @@ class SessionApiError extends Error {
 }
 
 export class SessionClient {
-  constructor(baseUrl = "") {
-    this.baseUrl = baseUrl.replace(/\/$/, "");
+  constructor(basePath = "/api") {
+    this.basePath = basePath.replace(/\/$/, "");
   }
 
   async getSnapshot(signal) {
@@ -35,7 +35,7 @@ export class SessionClient {
   }
 
   async #request(path, options) {
-    const response = await fetch(`${this.baseUrl}${path}`, options);
+    const response = await fetch(`${this.basePath}${path}`, options);
 
     if (!response.ok) {
       let message = response.statusText || "Request failed";
@@ -61,4 +61,4 @@ export class SessionClient {
   }
 }
 
-export const createSessionClient = (baseUrl) => new SessionClient(baseUrl);
+export const createSessionClient = (basePath) => new SessionClient(basePath);

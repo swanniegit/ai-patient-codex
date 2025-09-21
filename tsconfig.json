@@ -12,6 +12,6 @@
     "rootDir": "",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["codex/**/*.ts", "vitest.config.ts"],
+  "include": ["api/**/*.ts", "codex/**/*.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

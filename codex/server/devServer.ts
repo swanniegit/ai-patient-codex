@@ -56,16 +56,28 @@ const serveStatic = async (
   createReadStream(filePath).pipe(res);
 };
 
+const normalizeApiPath = (pathname: string) => {
+  if (pathname === "/api" || pathname === "/api/") {
+    return "/";
+  }
+  if (pathname.startsWith("/api/")) {
+    return pathname.slice(4) || "/";
+  }
+  return pathname;
+};
+
 const server = createServer(async (req, res) => {
   try {
     const requestUrl = new URL(req.url ?? "/", `http://${req.headers.host}`);
-    if (req.method === "GET" && requestUrl.pathname === "/session") {
+    const routePath = normalizeApiPath(requestUrl.pathname);
+
+    if (req.method === "GET" && routePath === "/session") {
       const snapshot = await controller.getSnapshot();
       sendJson(res, 200, snapshot);
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/session/bio") {
+    if (req.method === "POST" && routePath === "/session/bio") {
       const body = (await parseJsonBody(req)) as Partial<BioAgentInput>;
       const snapshot = await controller.updateBio({
         patient: body.patient ?? {},
@@ -75,9 +87,15 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/session/bio/confirm") {
+    if (req.method === "POST" && routePath === "/session/bio/confirm") {
       const outcome = await controller.confirmBio();
       sendJson(res, outcome.ok ? 200 : 409, outcome);
+      return;
+    }
+
+    if (routePath.startsWith("/session")) {
+      res.statusCode = 404;
+      res.end("Not found");
       return;
     }
 

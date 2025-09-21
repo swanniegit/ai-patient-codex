@@ -14,8 +14,9 @@ const elements = {
   sessionPhase: document.querySelector("#session-phase"),
 };
 
+const apiBase = document.body?.dataset.apiBase ?? "/api";
 const store = createSessionStore();
-const client = createSessionClient();
+const client = createSessionClient(apiBase);
 
 registerSessionRenderer({ store, elements });
 registerBioForm({

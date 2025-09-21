@@ -5,6 +5,11 @@ import { createAgentDependencies } from "../app/dependencies";
 import { createSessionEnvironment } from "../app/session";
 import { createBlankCaseRecord } from "../app/recordFactory";
 import { ConsentPreferences, PatientBio } from "../schemas/PatientBio";
+import { CaseRecordRepository } from "../app/storage/types";
+
+interface SessionControllerOptions {
+  repository?: CaseRecordRepository;
+}
 
 interface SessionSnapshot {
   record: CaseRecord;
@@ -18,12 +23,17 @@ export class SessionController {
   private bioResult: BioAgentOutput | null = null;
   private state: SessionSnapshot["state"] = "BIO_INTAKE";
 
-  private readonly bioAgent = createBioAgent(createAgentDependencies({}));
+  private readonly bioAgent: ReturnType<typeof createBioAgent>;
 
-  constructor(record?: CaseRecord) {
+  constructor(record?: CaseRecord, options: SessionControllerOptions = {}) {
     this.record = record ?? createBlankCaseRecord();
+    const dependencies = createAgentDependencies({});
+    this.bioAgent = createBioAgent(dependencies);
+
     const { context } = createSessionEnvironment(this.record, {
       initialState: "BIO_INTAKE",
+      dependencies,
+      repository: options.repository,
     });
     this.context = context;
     this.context.record = this.record;
