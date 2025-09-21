@@ -5,7 +5,7 @@ import { extname, join, sep } from "node:path";
 import { URL } from "node:url";
 import { BioAgentInput } from "../agents/BioAgent";
 import { createSessionController } from "./sessionRuntime/index.js";
-import { extractRequestContext } from "./requestContext";
+import { extractRequestContext } from "./requestContext.js";
 import { handleError, sendJson, readJsonBody } from "./httpHelpers";
 
 const PORT = Number(process.env.PORT ?? 3000);

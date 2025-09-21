@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSessionController } from "../../../codex/server/sessionRuntime/index.js";
-import { extractRequestContext } from "../../../codex/server/requestContext";
+import { extractRequestContext } from "../../../codex/server/requestContext.js";
 import { handleError, sendJson, sendMethodNotAllowed } from "../../../codex/server/httpHelpers";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
