@@ -39,14 +39,22 @@ const serialize = (record: CaseRecord): CaseRecordRow => ({
   updated_at: record.updatedAt,
 });
 
+const normalizeTimestamp = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid timestamp: ${value}`);
+  }
+  return date.toISOString();
+};
+
 const deserialize = (row: CaseRecordRow): CaseRecord => {
   const base = {
     caseId: row.case_id,
     clinicianId: row.clinician_id,
     clinicianPinHash: row.clinician_pin_hash,
     storageMeta: row.storage_meta,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: normalizeTimestamp(row.created_at),
+    updatedAt: normalizeTimestamp(row.updated_at),
     consentGranted: row.consent_granted,
     status: row.status as CaseRecord["status"],
     encryptedFields: row.encrypted_fields ?? {},
