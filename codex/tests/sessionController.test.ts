@@ -44,26 +44,37 @@ describe("SessionController", () => {
 
   it("hydrates controller from repository when record exists", async () => {
     const repository = new MemoryCaseRecordRepository();
-    const existing = createBlankCaseRecord({ caseId: "case-123" });
+    const existing = createBlankCaseRecord({ caseId: "11111111-2222-3333-4444-555555555555" });
     existing.patient.firstName = "Existing";
     existing.consentGranted = true;
-    existing.clinicianId = "clinician-1";
+    existing.clinicianId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
     await repository.save(existing);
 
-    const controller = await createSessionController({ caseId: "case-123", clinicianId: "clinician-1", repository });
+    const controller = await createSessionController({
+      caseId: "11111111-2222-3333-4444-555555555555",
+      clinicianId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      repository,
+    });
     const snapshot = await controller.getSnapshot();
 
-    expect(snapshot.record.caseId).toBe("case-123");
+    expect(snapshot.record.caseId).toBe("11111111-2222-3333-4444-555555555555");
     expect(snapshot.record.patient.firstName).toBe("Existing");
   });
 
   it("throws when clinician does not own the case", async () => {
     const repository = new MemoryCaseRecordRepository();
-    const existing = createBlankCaseRecord({ caseId: "case-unauth", clinicianId: "clinician-owner" });
+    const existing = createBlankCaseRecord({
+      caseId: "99999999-8888-7777-6666-555555555555",
+      clinicianId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    });
     await repository.save(existing);
 
     await expect(
-      createSessionController({ caseId: "case-unauth", clinicianId: "clinician-other", repository })
+      createSessionController({
+        caseId: "99999999-8888-7777-6666-555555555555",
+        clinicianId: "11111111-aaaa-bbbb-cccc-222222222222",
+        repository,
+      })
     ).rejects.toThrowError(/Clinician not authorized/);
   });
 });

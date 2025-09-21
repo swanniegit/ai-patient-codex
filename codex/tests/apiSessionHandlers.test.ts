@@ -75,6 +75,11 @@ const identityHeaders = (sessionId: string, clinicianId: string): Record<string,
   "x-clinician-id": clinicianId,
 });
 
+const SESSION_A = "11111111-2222-3333-4444-555555555555";
+const SESSION_B = "66666666-7777-8888-9999-aaaaaaaaaaaa";
+const CLINICIAN_A = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+const CLINICIAN_B = "11111111-aaaa-bbbb-cccc-222222222222";
+
 describe("API session handlers", () => {
   beforeEach(() => {
     resetSessionRuntime();
@@ -95,25 +100,25 @@ describe("API session handlers", () => {
     const result = await runHandler(sessionHandler, {
       method: "GET",
       url: "/api/session",
-      headers: identityHeaders("case-api-1", "clinician-api-1"),
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
     });
 
     expect(result.status).toBe(200);
-    expect(result.body.record.caseId).toBe("case-api-1");
-    expect(result.body.record.clinicianId).toBe("clinician-api-1");
+    expect(result.body.record.caseId).toBe(SESSION_A);
+    expect(result.body.record.clinicianId).toBe(CLINICIAN_A);
   });
 
   it("persists bio updates via repository", async () => {
     await runHandler(sessionHandler, {
       method: "GET",
       url: "/api/session",
-      headers: identityHeaders("case-api-2", "clinician-api-2"),
+      headers: identityHeaders(SESSION_B, CLINICIAN_B),
     });
 
     const update = await runHandler(bioHandler, {
       method: "POST",
       url: "/api/session/bio",
-      headers: identityHeaders("case-api-2", "clinician-api-2"),
+      headers: identityHeaders(SESSION_B, CLINICIAN_B),
       body: {
         patient: { firstName: "Ada" },
         consent: { dataStorage: true, photography: true },
@@ -126,7 +131,7 @@ describe("API session handlers", () => {
     const confirm = await runHandler(confirmHandler, {
       method: "POST",
       url: "/api/session/bio/confirm",
-      headers: identityHeaders("case-api-2", "clinician-api-2"),
+      headers: identityHeaders(SESSION_B, CLINICIAN_B),
     });
 
     expect(confirm.status).toBe(409);
@@ -135,7 +140,7 @@ describe("API session handlers", () => {
     const snapshot = await runHandler(sessionHandler, {
       method: "GET",
       url: "/api/session",
-      headers: identityHeaders("case-api-2", "clinician-api-2"),
+      headers: identityHeaders(SESSION_B, CLINICIAN_B),
     });
 
     expect(snapshot.body.record.patient.firstName).toBe("Ada");
@@ -145,13 +150,13 @@ describe("API session handlers", () => {
     await runHandler(sessionHandler, {
       method: "GET",
       url: "/api/session",
-      headers: identityHeaders("case-locked", "clinician-owner"),
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
     });
 
     const result = await runHandler(sessionHandler, {
       method: "GET",
       url: "/api/session",
-      headers: identityHeaders("case-locked", "clinician-other"),
+      headers: identityHeaders(SESSION_A, CLINICIAN_B),
     });
 
     expect(result.status).toBe(403);

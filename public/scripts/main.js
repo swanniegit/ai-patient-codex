@@ -16,9 +16,37 @@ const elements = {
 
 const IDENTITY_STORAGE_KEY = "codex.session.identity";
 
-const generateId = (prefix) => {
-  const uuid = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-  return `${prefix}-${uuid}`;
+const uuid = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Math.random().toString(16).slice(2, 10)}-${Math.random().toString(16).slice(2, 6)}-${Math.random()
+    .toString(16)
+    .slice(2, 6)}-${Math.random().toString(16).slice(2, 6)}-${Math.random().toString(16).slice(2, 14)}`;
+};
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const stripPrefix = (value, prefixes) => {
+  if (!value) return undefined;
+  let candidate = value.trim();
+  for (const prefix of prefixes) {
+    if (candidate.toLowerCase().startsWith(prefix)) {
+      candidate = candidate.slice(prefix.length);
+      break;
+    }
+  }
+  return candidate;
+};
+
+const normalizeIdentityValue = (value, prefixes) => {
+  if (!value) return undefined;
+  if (UUID_REGEX.test(value)) return value;
+  const candidate = stripPrefix(value, prefixes);
+  if (candidate && UUID_REGEX.test(candidate)) {
+    return candidate;
+  }
+  return undefined;
 };
 
 const ensureIdentity = () => {
@@ -26,9 +54,13 @@ const ensureIdentity = () => {
     const raw = localStorage.getItem(IDENTITY_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed.sessionId && parsed.clinicianId) {
-        document.cookie = `codex_session=${parsed.sessionId}; Path=/; SameSite=Lax`;
-        return parsed;
+      const sessionId = normalizeIdentityValue(parsed.sessionId, ["case-", "session-", "sid-"]);
+      const clinicianId = normalizeIdentityValue(parsed.clinicianId, ["clinician-", "cid-"]);
+      if (sessionId && clinicianId) {
+        document.cookie = `codex_session=${sessionId}; Path=/; SameSite=Lax`;
+        const normalized = { sessionId, clinicianId };
+        localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
       }
     }
   } catch {
@@ -36,8 +68,8 @@ const ensureIdentity = () => {
   }
 
   const identity = {
-    sessionId: generateId("case"),
-    clinicianId: generateId("clinician"),
+    sessionId: uuid(),
+    clinicianId: uuid(),
   };
 
   try {

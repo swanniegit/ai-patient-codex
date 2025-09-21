@@ -28,6 +28,23 @@ const normalize = (value: unknown) => {
   return undefined;
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const sanitizeIdentifier = (value: string | undefined, prefixes: string[]): string | undefined => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (UUID_REGEX.test(trimmed)) return trimmed;
+  for (const prefix of prefixes) {
+    if (trimmed.toLowerCase().startsWith(prefix)) {
+      const candidate = trimmed.slice(prefix.length);
+      if (UUID_REGEX.test(candidate)) {
+        return candidate;
+      }
+    }
+  }
+  return undefined;
+};
+
 export interface RequestContext {
   caseId: string;
   clinicianId: string;
@@ -40,8 +57,8 @@ export const extractRequestContext = (req: IncomingMessage): RequestContext => {
   const cookies = parseCookies(normalize(req.headers.cookie));
   const cookieSession = normalize(cookies[SESSION_COOKIE]);
 
-  const caseId = headerSession ?? cookieSession;
-  const clinicianId = headerClinician;
+  const caseId = sanitizeIdentifier(headerSession ?? cookieSession, ["case-", "session-", "sid-"]);
+  const clinicianId = sanitizeIdentifier(headerClinician, ["clinician-", "cid-"]);
 
   if (!caseId || !clinicianId) {
     throw new MissingIdentityError();
