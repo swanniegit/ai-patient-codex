@@ -1,6 +1,6 @@
-import { createSessionEnvironment } from "../app/session";
-import { createStubCaseRecord } from "./testUtils";
-import { CaseRecordRepository } from "../app/storage/types";
+import { createSessionEnvironment } from "../app/session.js";
+import { createStubCaseRecord } from "./testUtils.js";
+import { CaseRecordRepository } from "../app/storage/types.js";
 
 const repo: CaseRecordRepository = {
   save: async () => undefined,

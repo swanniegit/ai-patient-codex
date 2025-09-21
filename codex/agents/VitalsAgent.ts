@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { Vitals } from "../schemas/Vitals";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { Vitals } from "../schemas/Vitals.js";
 
 type DeepPartial<T> = T extends (infer U)[]
   ? Array<DeepPartial<U>>

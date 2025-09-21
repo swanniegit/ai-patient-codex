@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { FollowUpItem } from "../schemas/CaseRecord";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { FollowUpItem } from "../schemas/CaseRecord.js";
 
 export interface FollowupAgentInput {
   openItems: FollowUpItem[];

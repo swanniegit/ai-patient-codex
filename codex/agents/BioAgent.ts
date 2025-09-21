@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { PatientBio, ConsentPreferences } from "../schemas/PatientBio";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { PatientBio, ConsentPreferences } from "../schemas/PatientBio.js";
 
 export interface BioAgentInput {
   patient: Partial<PatientBio>;

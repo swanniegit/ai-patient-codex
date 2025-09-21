@@ -1,4 +1,4 @@
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
 
 export interface Agent<TInput = unknown, TOutput = unknown> {
   readonly name: string;

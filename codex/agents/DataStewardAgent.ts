@@ -1,7 +1,7 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { CaseRecord } from "../schemas/CaseRecord";
-import { CryptoProvider } from "../crypto/types";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { CaseRecord } from "../schemas/CaseRecord.js";
+import { CryptoProvider } from "../crypto/types.js";
 
 export interface DataStewardInput {
   draft?: CaseRecord;

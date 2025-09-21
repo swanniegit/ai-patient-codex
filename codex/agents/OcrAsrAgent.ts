@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { ArtifactRef } from "../schemas/ArtifactRef";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { ArtifactRef } from "../schemas/ArtifactRef.js";
 
 export interface OcrAsrInput {
   artifact: ArtifactRef;

@@ -1,4 +1,4 @@
-import { CaseRecord } from "../schemas/CaseRecord";
+import { CaseRecord } from "../schemas/CaseRecord.js";
 
 describe("CaseRecord schema", () => {
   it("rejects TIME tissue totals over 100", () => {

@@ -1,4 +1,4 @@
-import { AgentLogger, LlmClient, LlmGenerateOptions, LlmGenerateResult } from "../../agents/AgentContext";
+import { AgentLogger, LlmClient, LlmGenerateOptions, LlmGenerateResult } from "../../agents/AgentContext.js";
 
 export interface GeminiClientOptions {
   apiKey?: string;

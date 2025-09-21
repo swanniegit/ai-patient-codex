@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ArtifactRef } from "./ArtifactRef";
-import { PatientBio } from "./PatientBio";
-import { TimeBlock } from "./TimeBlock";
-import { Vitals } from "./Vitals";
-import { WoundPhoto } from "./WoundPhoto";
+import { ArtifactRef } from "./ArtifactRef.js";
+import { PatientBio } from "./PatientBio.js";
+import { TimeBlock } from "./TimeBlock.js";
+import { Vitals } from "./Vitals.js";
+import { WoundPhoto } from "./WoundPhoto.js";
 
 export const EncryptedField = z.object({
   ciphertext: z.string(),

@@ -1,9 +1,9 @@
-import { CaseRecord } from "../../schemas/CaseRecord";
-import { SessionController } from "../sessionController";
-import { CaseRecordRepository } from "../../app/storage/types";
-import { MemoryCaseRecordRepository } from "../../app/storage/memoryRepository";
-import { createBlankCaseRecord } from "../../app/recordFactory";
-import { createCaseRecordRepository } from "../../app/storage/supabaseClient";
+import { CaseRecord } from "../../schemas/CaseRecord.js";
+import { SessionController } from "../sessionController.js";
+import { CaseRecordRepository } from "../../app/storage/types.js";
+import { MemoryCaseRecordRepository } from "../../app/storage/memoryRepository.js";
+import { createBlankCaseRecord } from "../../app/recordFactory.js";
+import { createCaseRecordRepository } from "../../app/storage/supabaseClient.js";
 import { UnauthorizedAccessError } from "../errors.js";
 
 const MEMORY_REPO_MAP = Symbol.for("codex#memory-repositories");

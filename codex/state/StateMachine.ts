@@ -1,5 +1,5 @@
-import { CaseRecord } from "../schemas/CaseRecord";
-import { SessionEvent, SessionState, stateTransitions, terminalStates } from "./transitions";
+import { CaseRecord } from "../schemas/CaseRecord.js";
+import { SessionEvent, SessionState, stateTransitions, terminalStates } from "./transitions.js";
 
 export interface StateSnapshot {
   state: SessionState;

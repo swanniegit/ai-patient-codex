@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { WoundPhoto } from "../schemas/WoundPhoto";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { WoundPhoto } from "../schemas/WoundPhoto.js";
 
 export interface WoundImagingInput {
   photos: WoundPhoto[];

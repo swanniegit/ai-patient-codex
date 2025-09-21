@@ -1,11 +1,11 @@
-import { CaseRecord } from "../schemas/CaseRecord";
-import { ArtifactRef } from "../schemas/ArtifactRef";
-import { buildOrchestrator, OrchestratorOptions } from "./orchestrator";
-import { createAgentDependencies } from "./dependencies";
-import { createCaseRecordRepository } from "./storage/supabaseClient";
-import { CaseRecordRepository } from "./storage/types";
-import { createAutosave } from "./storage/autosave";
-import { AgentRunContext } from "../agents/AgentContext";
+import { CaseRecord } from "../schemas/CaseRecord.js";
+import { ArtifactRef } from "../schemas/ArtifactRef.js";
+import { buildOrchestrator, OrchestratorOptions } from "./orchestrator.js";
+import { createAgentDependencies } from "./dependencies.js";
+import { createCaseRecordRepository } from "./storage/supabaseClient.js";
+import { CaseRecordRepository } from "./storage/types.js";
+import { createAutosave } from "./storage/autosave.js";
+import { AgentRunContext } from "../agents/AgentContext.js";
 
 export interface SessionEnvironmentOptions extends OrchestratorOptions {
   repository?: CaseRecordRepository;

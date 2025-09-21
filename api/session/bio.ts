@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSessionController } from "../../codex/server/sessionRuntime/index.js";
 import { extractRequestContext } from "../../codex/server/requestContext.js";
 import { handleError, readJsonBody, sendJson, sendMethodNotAllowed } from "../../codex/server/httpHelpers.js";
-import type { BioAgentInput } from "../../codex/agents/BioAgent";
+import type { BioAgentInput } from "../../codex/agents/BioAgent.js";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {

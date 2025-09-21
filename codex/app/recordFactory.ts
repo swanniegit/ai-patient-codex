@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { CaseRecord } from "../schemas/CaseRecord";
+import { CaseRecord } from "../schemas/CaseRecord.js";
 
 const buildTimestamp = () => new Date().toISOString();
 

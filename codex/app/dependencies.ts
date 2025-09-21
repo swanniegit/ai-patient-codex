@@ -1,9 +1,9 @@
 import path from "path";
 import { promises as fs } from "fs";
-import { AgentDependencies, AgentLogger, LlmClient, PromptLoader } from "../agents/AgentContext";
-import { CryptoProvider } from "../crypto/types";
-import { EnvKeyCryptoProvider, EnvKeyCryptoProviderOptions } from "../crypto/provider";
-import { createGeminiClient, GeminiClientOptions } from "./llm";
+import { AgentDependencies, AgentLogger, LlmClient, PromptLoader } from "../agents/AgentContext.js";
+import { CryptoProvider } from "../crypto/types.js";
+import { EnvKeyCryptoProvider, EnvKeyCryptoProviderOptions } from "../crypto/provider.js";
+import { createGeminiClient, GeminiClientOptions } from "./llm/index.js";
 
 class FilePromptLoader implements PromptLoader {
   constructor(private readonly baseDir: string) {}

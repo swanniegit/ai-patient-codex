@@ -1,6 +1,6 @@
-import { BioAgent } from "../agents/BioAgent";
-import { AgentDependencies, AgentRunContext } from "../agents/AgentContext";
-import { createStubCaseRecord } from "./testUtils";
+import { BioAgent } from "../agents/BioAgent.js";
+import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
+import { createStubCaseRecord } from "./testUtils.js";
 
 const deps: AgentDependencies = {
   promptLoader: {

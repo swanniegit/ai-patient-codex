@@ -1,4 +1,4 @@
-import { CaseRecord } from "../schemas/CaseRecord";
+import { CaseRecord } from "../schemas/CaseRecord.js";
 
 export const createStubCaseRecord = (overrides: Partial<CaseRecord> = {}): CaseRecord => ({
   caseId: "123e4567-e89b-12d3-a456-426614174000",

@@ -1,6 +1,6 @@
-import { TimeAgent } from "../agents/TimeAgent";
-import { AgentDependencies, AgentRunContext } from "../agents/AgentContext";
-import { createStubCaseRecord } from "./testUtils";
+import { TimeAgent } from "../agents/TimeAgent.js";
+import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
+import { createStubCaseRecord } from "./testUtils.js";
 
 const deps: AgentDependencies = {
   promptLoader: {

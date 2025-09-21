@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import sessionHandler from "../../api/session/index";
-import bioHandler from "../../api/session/bio";
-import confirmHandler from "../../api/session/bio/confirm";
+import sessionHandler from "../../api/session/index.js";
+import bioHandler from "../../api/session/bio.js";
+import confirmHandler from "../../api/session/bio/confirm.js";
 import { resetSessionRuntime } from "../server/sessionRuntime/index.js";
 
 interface MockRequestOptions {

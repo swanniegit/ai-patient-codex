@@ -1,11 +1,11 @@
-import { AgentRunContext } from "../agents/AgentContext";
-import { BioAgentInput, BioAgentOutput, createBioAgent } from "../agents/BioAgent";
-import { CaseRecord } from "../schemas/CaseRecord";
-import { createAgentDependencies } from "../app/dependencies";
-import { createSessionEnvironment } from "../app/session";
-import { createBlankCaseRecord } from "../app/recordFactory";
-import { ConsentPreferences, PatientBio } from "../schemas/PatientBio";
-import { CaseRecordRepository } from "../app/storage/types";
+import { AgentRunContext } from "../agents/AgentContext.js";
+import { BioAgentInput, BioAgentOutput, createBioAgent } from "../agents/BioAgent.js";
+import { CaseRecord } from "../schemas/CaseRecord.js";
+import { createAgentDependencies } from "../app/dependencies.js";
+import { createSessionEnvironment } from "../app/session.js";
+import { createBlankCaseRecord } from "../app/recordFactory.js";
+import { ConsentPreferences, PatientBio } from "../schemas/PatientBio.js";
+import { CaseRecordRepository } from "../app/storage/types.js";
 
 interface SessionControllerOptions {
   repository?: CaseRecordRepository;

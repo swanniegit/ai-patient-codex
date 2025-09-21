@@ -1,6 +1,6 @@
 import path from "path";
-import { createAgentDependencies } from "../app/dependencies";
-import { EnvKeyCryptoProvider } from "../crypto/provider";
+import { createAgentDependencies } from "../app/dependencies.js";
+import { EnvKeyCryptoProvider } from "../crypto/provider.js";
 
 const KEY = Buffer.alloc(32, 5).toString("base64");
 

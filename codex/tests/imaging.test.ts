@@ -1,6 +1,6 @@
-import { WoundImagingAgent } from "../agents/WoundImagingAgent";
-import { AgentDependencies, AgentRunContext } from "../agents/AgentContext";
-import { createStubCaseRecord } from "./testUtils";
+import { WoundImagingAgent } from "../agents/WoundImagingAgent.js";
+import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
+import { createStubCaseRecord } from "./testUtils.js";
 
 const deps: AgentDependencies = {
   promptLoader: {

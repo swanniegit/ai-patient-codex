@@ -1,7 +1,7 @@
-import { DataStewardAgent } from "../agents/DataStewardAgent";
-import { AgentDependencies, AgentRunContext } from "../agents/AgentContext";
-import { CryptoProvider } from "../crypto/types";
-import { createStubCaseRecord } from "./testUtils";
+import { DataStewardAgent } from "../agents/DataStewardAgent.js";
+import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
+import { CryptoProvider } from "../crypto/types.js";
+import { createStubCaseRecord } from "./testUtils.js";
 
 const fakeCrypto: CryptoProvider = {
   encrypt: async (value: string) => ({

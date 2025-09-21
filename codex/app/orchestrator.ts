@@ -1,18 +1,18 @@
-import { Orchestrator } from "../agents/Orchestrator";
-import { StateMachine } from "../state/StateMachine";
-import { SessionState } from "../state/transitions";
-import { CaseRecord } from "../schemas/CaseRecord";
-import { createAgentDependencies, DependencyOptions } from "./dependencies";
-import { AgentDependencies } from "../agents/AgentContext";
-import { createBioAgent } from "../agents/BioAgent";
-import { createWoundImagingAgent } from "../agents/WoundImagingAgent";
-import { createVitalsAgent } from "../agents/VitalsAgent";
-import { createTimeAgent } from "../agents/TimeAgent";
-import { createFollowupAgent } from "../agents/FollowupAgent";
-import { createDataStewardAgent } from "../agents/DataStewardAgent";
-import { createSecurityAgent } from "../agents/SecurityAgent";
-import { createExportAgent } from "../agents/ExportAgent";
-import { AgentFactory } from "../agents/AgentInterface";
+import { Orchestrator } from "../agents/Orchestrator.js";
+import { StateMachine } from "../state/StateMachine.js";
+import { SessionState } from "../state/transitions.js";
+import { CaseRecord } from "../schemas/CaseRecord.js";
+import { createAgentDependencies, DependencyOptions } from "./dependencies.js";
+import { AgentDependencies } from "../agents/AgentContext.js";
+import { createBioAgent } from "../agents/BioAgent.js";
+import { createWoundImagingAgent } from "../agents/WoundImagingAgent.js";
+import { createVitalsAgent } from "../agents/VitalsAgent.js";
+import { createTimeAgent } from "../agents/TimeAgent.js";
+import { createFollowupAgent } from "../agents/FollowupAgent.js";
+import { createDataStewardAgent } from "../agents/DataStewardAgent.js";
+import { createSecurityAgent } from "../agents/SecurityAgent.js";
+import { createExportAgent } from "../agents/ExportAgent.js";
+import { AgentFactory } from "../agents/AgentInterface.js";
 
 export interface OrchestratorOptions extends DependencyOptions {
   initialState?: SessionState;

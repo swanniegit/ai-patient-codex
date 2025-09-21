@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { PostgrestError } from "@supabase/postgrest-js";
-import { SupabaseCaseRecordRepository } from "./supabaseRepository";
-import { CaseRecordRepository, SupabaseClientLike } from "./types";
+import { SupabaseCaseRecordRepository } from "./supabaseRepository.js";
+import { CaseRecordRepository, SupabaseClientLike } from "./types.js";
 
 export interface SupabaseConfig {
   url?: string;

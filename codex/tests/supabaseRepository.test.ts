@@ -1,6 +1,6 @@
-import { SupabaseCaseRecordRepository } from "../app/storage/supabaseRepository";
-import { createStubCaseRecord } from "./testUtils";
-import { SupabaseClientLike } from "../app/storage/types";
+import { SupabaseCaseRecordRepository } from "../app/storage/supabaseRepository.js";
+import { createStubCaseRecord } from "./testUtils.js";
+import { SupabaseClientLike } from "../app/storage/types.js";
 
 type UpsertCall = Record<string, unknown> & { payload?: Record<string, unknown> };
 

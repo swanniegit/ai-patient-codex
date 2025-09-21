@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ArtifactRef } from "./ArtifactRef";
+import { ArtifactRef } from "./ArtifactRef.js";
 
 const QaFlag = z.enum(["pass", "fail", "unknown"]);
 

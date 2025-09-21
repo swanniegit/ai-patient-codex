@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { TimeBlock } from "../schemas/TimeBlock";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { TimeBlock } from "../schemas/TimeBlock.js";
 
 export interface TimeAgentInput {
   time: Partial<TimeBlock>;

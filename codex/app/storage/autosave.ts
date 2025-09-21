@@ -1,5 +1,5 @@
-import { CaseRecord } from "../../schemas/CaseRecord";
-import { CaseRecordRepository } from "./types";
+import { CaseRecord } from "../../schemas/CaseRecord.js";
+import { CaseRecordRepository } from "./types.js";
 
 export const createAutosave = (repo: CaseRecordRepository) => {
   return async (draft: CaseRecord) => {

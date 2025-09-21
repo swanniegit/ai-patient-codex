@@ -1,6 +1,6 @@
-import { VitalsAgent } from "../agents/VitalsAgent";
-import { AgentDependencies, AgentRunContext } from "../agents/AgentContext";
-import { createStubCaseRecord } from "./testUtils";
+import { VitalsAgent } from "../agents/VitalsAgent.js";
+import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
+import { createStubCaseRecord } from "./testUtils.js";
 
 const deps: AgentDependencies = {
   promptLoader: {

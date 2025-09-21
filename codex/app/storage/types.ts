@@ -1,4 +1,4 @@
-import { CaseRecord } from "../../schemas/CaseRecord";
+import { CaseRecord } from "../../schemas/CaseRecord.js";
 
 export interface CaseRecordRepository {
   save(record: CaseRecord): Promise<void>;

@@ -1,5 +1,5 @@
-import { EnvKeyCryptoProvider } from "../crypto/provider";
-import { encryptField } from "../crypto/encryption";
+import { EnvKeyCryptoProvider } from "../crypto/provider.js";
+import { encryptField } from "../crypto/encryption.js";
 
 const ACTIVE_KEY = Buffer.alloc(32, 7).toString("base64");
 const LEGACY_KEY = Buffer.alloc(32, 9).toString("base64");

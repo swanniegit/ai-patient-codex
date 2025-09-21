@@ -1,6 +1,6 @@
-import { CaseRecord, ProvenanceEntry } from "../schemas/CaseRecord";
-import { ArtifactRef } from "../schemas/ArtifactRef";
-import { CryptoProvider } from "../crypto/types";
+import { CaseRecord, ProvenanceEntry } from "../schemas/CaseRecord.js";
+import { ArtifactRef } from "../schemas/ArtifactRef.js";
+import { CryptoProvider } from "../crypto/types.js";
 
 export interface PromptLoader {
   load(path: string): Promise<string>;

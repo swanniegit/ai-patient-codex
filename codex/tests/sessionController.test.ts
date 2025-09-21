@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { SessionController } from "../server/sessionController";
+import { SessionController } from "../server/sessionController.js";
 import { createSessionController, resetSessionRuntime } from "../server/sessionRuntime/index.js";
-import { MemoryCaseRecordRepository } from "../app/storage/memoryRepository";
-import { createBlankCaseRecord } from "../app/recordFactory";
+import { MemoryCaseRecordRepository } from "../app/storage/memoryRepository.js";
+import { createBlankCaseRecord } from "../app/recordFactory.js";
 
 describe("SessionController", () => {
   beforeEach(() => {

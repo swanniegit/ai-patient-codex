@@ -1,7 +1,7 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentRunContext, AgentResult } from "./AgentContext";
-import { StateMachine, StateSnapshot } from "../state/StateMachine";
-import { SessionEvent, SessionState } from "../state/transitions";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentRunContext, AgentResult } from "./AgentContext.js";
+import { StateMachine, StateSnapshot } from "../state/StateMachine.js";
+import { SessionEvent, SessionState } from "../state/transitions.js";
 
 export interface OrchestratorConfig {
   agentFactories: Partial<Record<SessionState, (deps: AgentDependencies) => Agent>>;

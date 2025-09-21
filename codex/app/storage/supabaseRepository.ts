@@ -1,5 +1,5 @@
-import { CaseRecord } from "../../schemas/CaseRecord";
-import { CaseRecordRepository, SupabaseClientLike } from "./types";
+import { CaseRecord } from "../../schemas/CaseRecord.js";
+import { CaseRecordRepository, SupabaseClientLike } from "./types.js";
 
 interface CaseRecordRow extends Record<string, unknown> {
   case_id: string;

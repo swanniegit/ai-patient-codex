@@ -1,5 +1,5 @@
-import { CaseRecord } from "../../schemas/CaseRecord";
-import { CaseRecordRepository } from "./types";
+import { CaseRecord } from "../../schemas/CaseRecord.js";
+import { CaseRecordRepository } from "./types.js";
 
 const cloneRecord = (record: CaseRecord): CaseRecord => JSON.parse(JSON.stringify(record));
 

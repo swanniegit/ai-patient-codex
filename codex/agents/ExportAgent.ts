@@ -1,6 +1,6 @@
-import { Agent } from "./AgentInterface";
-import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext";
-import { CaseRecord } from "../schemas/CaseRecord";
+import { Agent } from "./AgentInterface.js";
+import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
+import { CaseRecord } from "../schemas/CaseRecord.js";
 
 export interface ExportAgentInput {
   destination?: string;

@@ -1,5 +1,5 @@
-import { encryptField, decryptField, loadKeyFromEnv, EncryptionConfig } from "./encryption";
-import { CryptoPayload, CryptoProvider } from "./types";
+import { encryptField, decryptField, loadKeyFromEnv, EncryptionConfig } from "./encryption.js";
+import { CryptoPayload, CryptoProvider } from "./types.js";
 
 export interface EnvKeyCryptoProviderOptions {
   envVar?: string;
