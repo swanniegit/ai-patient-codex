@@ -44,16 +44,22 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
     }, SAVE_DEBOUNCE_MS);
   };
 
+  const applyPatch = (patch) => {
+    store.applyLocalPatch(patch);
+    store.setState({ phase: "saving", message: "Saving...", error: null });
+    schedulePatch(patch);
+  };
+
   form.addEventListener("input", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
-    schedulePatch(patch);
+    applyPatch(patch);
   });
 
   form.addEventListener("change", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
-    schedulePatch(patch);
+    applyPatch(patch);
   });
 
   if (confirmButton) {
@@ -111,9 +117,13 @@ const buildPatchForField = (target) => {
       };
     }
     case "notes": {
+      const lines = target.value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
       return {
         patient: {
-          notes: target.value,
+          notes: lines,
         },
         consent: {},
       };

@@ -12,6 +12,7 @@ const elements = {
   confirmButton: document.querySelector("#confirm-bio"),
   timeline: document.querySelector("#state-timeline"),
   sessionPhase: document.querySelector("#session-phase"),
+  newSessionButton: document.querySelector("#new-session"),
 };
 
 const IDENTITY_STORAGE_KEY = "codex.session.identity";
@@ -49,6 +50,16 @@ const normalizeIdentityValue = (value, prefixes) => {
   return undefined;
 };
 
+const persistIdentity = (identity) => {
+  try {
+    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(identity));
+  } catch {
+    // ignore storage failures
+  }
+
+  document.cookie = `codex_session=${identity.sessionId}; Path=/; SameSite=Lax`;
+};
+
 const ensureIdentity = () => {
   try {
     const raw = localStorage.getItem(IDENTITY_STORAGE_KEY);
@@ -57,9 +68,8 @@ const ensureIdentity = () => {
       const sessionId = normalizeIdentityValue(parsed.sessionId, ["case-", "session-", "sid-"]);
       const clinicianId = normalizeIdentityValue(parsed.clinicianId, ["clinician-", "cid-"]);
       if (sessionId && clinicianId) {
-        document.cookie = `codex_session=${sessionId}; Path=/; SameSite=Lax`;
         const normalized = { sessionId, clinicianId };
-        localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(normalized));
+        persistIdentity(normalized);
         return normalized;
       }
     }
@@ -72,14 +82,7 @@ const ensureIdentity = () => {
     clinicianId: uuid(),
   };
 
-  try {
-    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(identity));
-  } catch {
-    // ignore storage failures
-  }
-
-  document.cookie = `codex_session=${identity.sessionId}; Path=/; SameSite=Lax`;
-
+  persistIdentity(identity);
   return identity;
 };
 
@@ -112,3 +115,21 @@ const bootstrap = async () => {
 };
 
 bootstrap();
+
+elements.newSessionButton?.addEventListener("click", async () => {
+  const nextIdentity = {
+    sessionId: uuid(),
+    clinicianId: uuid(),
+  };
+  persistIdentity(nextIdentity);
+  client.setIdentity(nextIdentity);
+  store.setState({ snapshot: null, phase: "loading", message: "Starting new session...", error: null });
+  elements.form?.reset();
+  try {
+    const snapshot = await client.getSnapshot();
+    store.setState({ snapshot, phase: "ready", message: "Ready", error: null });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to load session";
+    store.setState({ phase: "error", message, error: message });
+  }
+});
