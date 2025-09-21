@@ -29,7 +29,7 @@ const orchestrator = buildOrchestrator(createStubCaseRecord());
 - Other dependencies (Supabase clients, logging backends) can be added to `DependencyOptions` as the integration surface grows.
 
 ## Repository Wiring
-- `createSessionController({ caseId, clinicianId })` (`codex/server/sessionRuntime.ts`) resolves the backing repository per request.
+- `createSessionController({ caseId, clinicianId })` (`codex/server/sessionRuntime/index.ts`) resolves the backing repository per request.
 - When Supabase env vars are present, it instantiates `SupabaseCaseRecordRepository`; otherwise an in-memory repository is reused per case ID within the runtime.
 - Existing records hydrate via `repository.fetchById(caseId)`; blank sessions fall back to `createBlankCaseRecord({ caseId })`.
 - Autosave hooks persist updates on each agent run, ensuring `/api/session/*` routes serve the latest case snapshot.
