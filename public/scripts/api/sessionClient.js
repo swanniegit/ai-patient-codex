@@ -8,9 +8,19 @@ class SessionApiError extends Error {
   }
 }
 
+const identityHeaders = (identity) => ({
+  "X-Session-Id": identity?.sessionId ?? "",
+  "X-Clinician-Id": identity?.clinicianId ?? "",
+});
+
 export class SessionClient {
-  constructor(basePath = "/api") {
+  constructor(basePath = "/api", identity) {
     this.basePath = basePath.replace(/\/$/, "");
+    this.identity = identity ?? null;
+  }
+
+  setIdentity(identity) {
+    this.identity = identity;
   }
 
   async getSnapshot(signal) {
@@ -21,7 +31,6 @@ export class SessionClient {
     return this.#request("/session/bio", {
       method: "POST",
       body: JSON.stringify(patch),
-      headers: JSON_HEADERS,
       signal,
     });
   }
@@ -29,13 +38,23 @@ export class SessionClient {
   async confirmBio(signal) {
     return this.#request("/session/bio/confirm", {
       method: "POST",
-      headers: JSON_HEADERS,
       signal,
     });
   }
 
   async #request(path, options) {
-    const response = await fetch(`${this.basePath}${path}`, options);
+    if (!this.identity?.sessionId || !this.identity?.clinicianId) {
+      throw new Error("Missing session identity; call setIdentity first");
+    }
+    const mergedHeaders = {
+      ...JSON_HEADERS,
+      ...identityHeaders(this.identity),
+      ...(options.headers ?? {}),
+    };
+    const response = await fetch(`${this.basePath}${path}`, {
+      ...options,
+      headers: mergedHeaders,
+    });
 
     if (!response.ok) {
       let message = response.statusText || "Request failed";

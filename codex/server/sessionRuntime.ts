@@ -4,11 +4,13 @@ import { CaseRecordRepository } from "../app/storage/types";
 import { MemoryCaseRecordRepository } from "../app/storage/memoryRepository";
 import { createBlankCaseRecord } from "../app/recordFactory";
 import { createCaseRecordRepository } from "../app/storage/supabaseClient";
+import { UnauthorizedAccessError } from "./errors";
 
 const MEMORY_REPO_MAP = Symbol.for("codex#memory-repositories");
 
-interface RuntimeOptions {
-  caseId?: string;
+export interface RuntimeOptions {
+  caseId: string;
+  clinicianId: string;
   repository?: CaseRecordRepository;
 }
 
@@ -18,10 +20,8 @@ type GlobalCodexRuntime = typeof globalThis & {
 
 const getGlobalRuntime = (): GlobalCodexRuntime => globalThis as GlobalCodexRuntime;
 
-const resolveCaseId = (options?: RuntimeOptions) => options?.caseId ?? "demo-case";
-
-const resolveRepository = (caseId: string, options?: RuntimeOptions): CaseRecordRepository => {
-  if (options?.repository) {
+const resolveRepository = (caseId: string, options: RuntimeOptions): CaseRecordRepository => {
+  if (options.repository) {
     return options.repository;
   }
 
@@ -47,21 +47,42 @@ const resolveRepository = (caseId: string, options?: RuntimeOptions): CaseRecord
   return map.get(caseId)!;
 };
 
-const loadRecord = async (caseId: string, repository: CaseRecordRepository): Promise<CaseRecord> => {
+const loadRecord = async (
+  caseId: string,
+  clinicianId: string,
+  repository: CaseRecordRepository
+): Promise<CaseRecord> => {
   try {
     const existing = await repository.fetchById(caseId);
     if (existing) {
+      if (existing.clinicianId !== clinicianId) {
+        throw new UnauthorizedAccessError();
+      }
       return existing;
     }
   } catch (error) {
+    if (error instanceof UnauthorizedAccessError) {
+      throw error;
+    }
     console.warn("Repository fetch failed, using blank record", { error });
   }
-  return createBlankCaseRecord({ caseId });
+
+  const record = createBlankCaseRecord({ caseId, clinicianId });
+  try {
+    await repository.save(record);
+  } catch (error) {
+    console.warn("Failed to persist initial record", { error });
+  }
+  return record;
 };
 
-export const createSessionController = async (options?: RuntimeOptions): Promise<SessionController> => {
-  const caseId = resolveCaseId(options);
-  const repository = resolveRepository(caseId, options);
-  const record = await loadRecord(caseId, repository);
+export const createSessionController = async (options: RuntimeOptions): Promise<SessionController> => {
+  const repository = resolveRepository(options.caseId, options);
+  const record = await loadRecord(options.caseId, options.clinicianId, repository);
   return new SessionController(record, { repository });
+};
+
+export const resetSessionRuntime = () => {
+  const runtime = getGlobalRuntime();
+  runtime[MEMORY_REPO_MAP]?.clear();
 };

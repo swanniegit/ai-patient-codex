@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { HttpError } from "./errors";
 
 export const sendJson = (res: ServerResponse, status: number, payload: unknown) => {
   res.statusCode = status;
@@ -31,6 +32,10 @@ export const readJsonBody = async <T = unknown>(req: IncomingMessage): Promise<T
 };
 
 export const handleError = (res: ServerResponse, error: unknown) => {
+  if (error instanceof HttpError) {
+    sendJson(res, error.status, { error: error.message });
+    return;
+  }
   if (error instanceof Error && error.name === "INVALID_JSON") {
     sendJson(res, 400, { error: "Invalid JSON body" });
     return;

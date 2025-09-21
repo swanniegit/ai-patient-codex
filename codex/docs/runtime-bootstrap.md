@@ -29,10 +29,16 @@ const orchestrator = buildOrchestrator(createStubCaseRecord());
 - Other dependencies (Supabase clients, logging backends) can be added to `DependencyOptions` as the integration surface grows.
 
 ## Repository Wiring
-- `createSessionController({ caseId })` (`codex/server/sessionRuntime.ts`) resolves the backing repository per request.
+- `createSessionController({ caseId, clinicianId })` (`codex/server/sessionRuntime.ts`) resolves the backing repository per request.
 - When Supabase env vars are present, it instantiates `SupabaseCaseRecordRepository`; otherwise an in-memory repository is reused per case ID within the runtime.
 - Existing records hydrate via `repository.fetchById(caseId)`; blank sessions fall back to `createBlankCaseRecord({ caseId })`.
 - Autosave hooks persist updates on each agent run, ensuring `/api/session/*` routes serve the latest case snapshot.
+
+## Session Identity Contract
+- API routes require both `X-Session-Id` and `X-Clinician-Id` headers. Missing values return `400`.
+- The `codex_session=<session-id>` cookie mirrors the session header so edge middleware or downstream services can reuse it.
+- Repository hydration rejects mismatched clinician IDs with `403` to prevent cross-tenant access.
+- Frontend bootstrap (`public/scripts/main.js`) generates stable demo identifiers via `localStorage` in local dev; production clients must supply authenticated values.
 
 ## Persistence Integration
 - `SupabaseCaseRecordRepository` lives in `codex/app/storage/supabaseRepository.ts` and conforms to `CaseRecordRepository`.

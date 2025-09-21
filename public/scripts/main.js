@@ -14,9 +14,48 @@ const elements = {
   sessionPhase: document.querySelector("#session-phase"),
 };
 
+const IDENTITY_STORAGE_KEY = "codex.session.identity";
+
+const generateId = (prefix) => {
+  const uuid = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  return `${prefix}-${uuid}`;
+};
+
+const ensureIdentity = () => {
+  try {
+    const raw = localStorage.getItem(IDENTITY_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.sessionId && parsed.clinicianId) {
+        document.cookie = `codex_session=${parsed.sessionId}; Path=/; SameSite=Lax`;
+        return parsed;
+      }
+    }
+  } catch {
+    // ignore storage errors
+  }
+
+  const identity = {
+    sessionId: generateId("case"),
+    clinicianId: generateId("clinician"),
+  };
+
+  try {
+    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(identity));
+  } catch {
+    // ignore storage failures
+  }
+
+  document.cookie = `codex_session=${identity.sessionId}; Path=/; SameSite=Lax`;
+
+  return identity;
+};
+
 const apiBase = document.body?.dataset.apiBase ?? "/api";
 const store = createSessionStore();
-const client = createSessionClient(apiBase);
+const identity = ensureIdentity();
+const client = createSessionClient(apiBase, identity);
+client.setIdentity(identity);
 
 registerSessionRenderer({ store, elements });
 registerBioForm({
