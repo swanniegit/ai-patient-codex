@@ -8,129 +8,94 @@
   </head>
   <body>
     <header>
-      <h1>AI Patient Codex</h1>
-      <p class="tagline">Wound-care agent orchestration — clinician guided, privacy first.</p>
+      <h1>Clinician Intake Console</h1>
+      <p class="tagline">Live session wiring for the wound-care agent stack.</p>
     </header>
 
-    <section>
-      <h2>Agentic Flow Overview</h2>
-      <p>
-        The system captures structured wound-care data step by step, ensuring every field is
-        traceable, clinician approved, and stored in a single <code>CaseRecord</code> JSON document.
-      </p>
-    </section>
-
-    <section id="flow-intro">
-      <h2>Kick Off A Session</h2>
-      <p>
-        Each intake flows through the orchestrator: collect demographics, validate images, log vitals,
-        complete T.I.M.E scoring, resolve gaps, assemble the JSON case record, bind to the clinician PIN,
-        then sync. Let’s start by confirming you’re ready.
-      </p>
-
-      <div class="cta-card">
-        <div class="cta-message" id="cta-message">
-          <strong>Step 1:</strong> Confirm readiness to start the data capture flow.
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Patient Bio Intake</h2>
+          <span id="record-meta" class="meta"></span>
         </div>
-        <div class="cta-actions" id="cta-actions">
-          <button type="button" data-action="ready">Ready</button>
+        <p class="lead">Enter or confirm demographics and consent before progressing.</p>
+
+        <form id="bio-form" autocomplete="off">
+          <div class="grid">
+            <label>
+              <span>First name</span>
+              <input name="firstName" type="text" maxlength="60" />
+            </label>
+            <label>
+              <span>Last name</span>
+              <input name="lastName" type="text" maxlength="60" />
+            </label>
+            <label>
+              <span>Preferred name</span>
+              <input name="preferredName" type="text" maxlength="60" />
+            </label>
+            <label>
+              <span>MRN</span>
+              <input name="mrn" type="text" maxlength="50" />
+            </label>
+            <label>
+              <span>Date of birth</span>
+              <input name="dateOfBirth" type="date" />
+            </label>
+            <label>
+              <span>Age</span>
+              <input name="age" type="number" min="0" max="120" />
+            </label>
+          </div>
+
+          <label class="stacked">
+            <span>Clinical notes</span>
+            <textarea name="notes" rows="4" placeholder="One note per line"></textarea>
+          </label>
+
+          <fieldset>
+            <legend>Consent</legend>
+            <label class="checkbox">
+              <input name="dataStorage" type="checkbox" />
+              <span>Patient approves secure data storage</span>
+            </label>
+            <label class="checkbox">
+              <input name="photography" type="checkbox" />
+              <span>Patient approves wound photography</span>
+            </label>
+            <label class="checkbox">
+              <input name="sharingToTeamBoard" type="checkbox" />
+              <span>Share to team board for clinical review</span>
+            </label>
+            <span id="consent-status" class="badge" data-state="pending">Consent pending</span>
+          </fieldset>
+
+          <div class="actions">
+            <button type="button" id="confirm-bio" disabled>Confirm bio intake</button>
+            <span id="save-status" class="status">Loading session...</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Workflow Status</h2>
+          <span id="session-phase" class="meta"></span>
         </div>
-      </div>
-    </section>
+        <p class="lead">Tracks orchestrator steps as encrypted data syncs downstream.</p>
+        <ol id="state-timeline" class="timeline"></ol>
+      </section>
 
-    <section>
-      <h2>Design Principles</h2>
-      <ul>
-        <li>Clinician-in-the-loop validation at every checkpoint.</li>
-        <li>No medical advice — agents only collect, clarify, and summarize.</li>
-        <li>Strict privacy defaults with consent gating and PIN binding.</li>
-        <li>Structured outputs with provenance for every entry.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Core Agents</h2>
-      <ol>
-        <li>Session Orchestrator</li>
-        <li>Identity &amp; Consent Intake</li>
-        <li>OCR &amp; Transcription</li>
-        <li>Wound Imaging QA</li>
-        <li>Vitals</li>
-        <li>T.I.M.E Capture</li>
-        <li>Follow-up Resolution</li>
-        <li>Data Steward &amp; JSON Assembler</li>
-        <li>Security &amp; PIN Linker</li>
-        <li>Export &amp; Sync</li>
-      </ol>
-    </section>
-
-    <section>
-      <h2>Guardrails</h2>
-      <ul>
-        <li>Neutral follow-ups only, no clinical advice.</li>
-        <li>Consent required before storage or export.</li>
-        <li>PII minimized and redacted in summaries.</li>
-        <li>Autosave snapshots on each state transition.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Docs &amp; Source</h2>
-      <p>
-        Explore the detailed specification in
-        <a href="https://github.com/christo/ai-patient-codex/blob/main/AGENTS.md">AGENTS.md</a>
-        on GitHub.
-      </p>
-    </section>
+      <section class="panel">
+        <h2>Missing Items</h2>
+        <ul id="missing-fields" class="missing"></ul>
+      </section>
+    </main>
 
     <footer>
       <p>No clinical advice is ever provided by this application.</p>
     </footer>
 
-    <script>
-      const actions = document.querySelector("#cta-actions");
-      const message = document.querySelector("#cta-message");
-
-      const renderInputOptions = () => {
-        message.innerHTML =
-          "<strong>Step 2:</strong> How will the patient data be supplied? Select an intake modality.";
-        actions.innerHTML = `
-          <button type="button" data-mode="image">Image Upload</button>
-          <button type="button" data-mode="text">Structured Text</button>
-          <button type="button" data-mode="audio">Audio Transcript</button>
-        `;
-      };
-
-      const renderHandoff = (mode) => {
-        const modeLabel =
-          mode === "image"
-            ? "Wound imaging queued for QA"
-            : mode === "audio"
-            ? "Transcription agent primed"
-            : "Structured form ready";
-
-        message.innerHTML = `
-          <strong>Step 3:</strong> ${modeLabel}. Session Orchestrator is initializing the
-          agent stack for you (BIO intake → Wound Imaging QA → Vitals → T.I.M.E → Follow-up →
-          Assemble JSON → PIN binding → Export).`;
-        actions.innerHTML = `
-          <span class="handoff">AI agents are taking over from here. Clinician approval still required before storage.</span>
-        `;
-      };
-
-      actions.addEventListener("click", (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLButtonElement)) return;
-
-        if (target.dataset.action === "ready") {
-          renderInputOptions();
-          return;
-        }
-
-        if (target.dataset.mode) {
-          renderHandoff(target.dataset.mode);
-        }
-      });
-    </script>
+    <script type="module" src="scripts/main.js"></script>
   </body>
 </html>

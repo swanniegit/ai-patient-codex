@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "ts-node codex/server/devServer.ts",
     "build": "tsc --project tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",

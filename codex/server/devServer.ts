@@ -1,0 +1,111 @@
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
+import { createServer } from "node:http";
+import { extname, join, sep } from "node:path";
+import { URL } from "node:url";
+import { BioAgentInput } from "../agents/BioAgent";
+import { SessionController } from "./sessionController";
+
+const PORT = Number(process.env.PORT ?? 3000);
+const controller = new SessionController();
+const publicDir = join(process.cwd(), "public");
+const publicRoot = `${publicDir}${publicDir.endsWith(sep) ? "" : sep}`;
+
+const contentTypes: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+};
+
+const sendJson = (res: import("node:http").ServerResponse, status: number, payload: unknown) => {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(JSON.stringify(payload));
+};
+
+const parseJsonBody = async (req: import("node:http").IncomingMessage) => {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.from(chunk));
+  }
+  if (!chunks.length) return {};
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch (error) {
+    throw new Error("INVALID_JSON");
+  }
+};
+
+const serveStatic = async (
+  res: import("node:http").ServerResponse,
+  filePath: string
+) => {
+  try {
+    await stat(filePath);
+  } catch {
+    res.statusCode = 404;
+    res.end("Not found");
+    return;
+  }
+
+  const ext = extname(filePath);
+  const type = contentTypes[ext] ?? "text/plain; charset=utf-8";
+  res.statusCode = 200;
+  res.setHeader("Content-Type", type);
+  createReadStream(filePath).pipe(res);
+};
+
+const server = createServer(async (req, res) => {
+  try {
+    const requestUrl = new URL(req.url ?? "/", `http://${req.headers.host}`);
+    if (req.method === "GET" && requestUrl.pathname === "/session") {
+      const snapshot = await controller.getSnapshot();
+      sendJson(res, 200, snapshot);
+      return;
+    }
+
+    if (req.method === "POST" && requestUrl.pathname === "/session/bio") {
+      const body = (await parseJsonBody(req)) as Partial<BioAgentInput>;
+      const snapshot = await controller.updateBio({
+        patient: body.patient ?? {},
+        consent: body.consent ?? {},
+      });
+      sendJson(res, 200, snapshot);
+      return;
+    }
+
+    if (req.method === "POST" && requestUrl.pathname === "/session/bio/confirm") {
+      const outcome = await controller.confirmBio();
+      sendJson(res, outcome.ok ? 200 : 409, outcome);
+      return;
+    }
+
+    if (req.method === "GET") {
+      const relativePath = requestUrl.pathname === "/" ? "index.html" : requestUrl.pathname.replace(/^\/+/, "");
+      const filePath = join(publicDir, relativePath);
+      if (!filePath.startsWith(publicRoot)) {
+        res.statusCode = 403;
+        res.end("Forbidden");
+        return;
+      }
+      await serveStatic(res, filePath);
+      return;
+    }
+
+    res.statusCode = 405;
+    res.end("Method not allowed");
+  } catch (error) {
+    if ((error as Error).message === "INVALID_JSON") {
+      sendJson(res, 400, { error: "Invalid JSON body" });
+      return;
+    }
+
+    console.error(error);
+    sendJson(res, 500, { error: "Unexpected server error" });
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`Dev server listening on http://localhost:${PORT}`);
+});
