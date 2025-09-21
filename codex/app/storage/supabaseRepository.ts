@@ -30,7 +30,11 @@ const serialize = (record: CaseRecord): CaseRecordRow => ({
   case_id: record.caseId,
   clinician_id: record.clinicianId,
   clinician_pin_hash: record.clinicianPinHash,
-  storage_meta: record.storageMeta as unknown as Record<string, unknown>,
+  storage_meta: {
+    version: record.storageMeta.version,
+    schema: record.storageMeta.schema,
+    state: record.storageMeta.state,
+  },
   payload: buildPayload(record),
   encrypted_fields: record.encryptedFields,
   consent_granted: record.consentGranted,

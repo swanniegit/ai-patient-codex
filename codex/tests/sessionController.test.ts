@@ -14,6 +14,7 @@ describe("SessionController", () => {
 
     const initial = await controller.getSnapshot();
     expect(initial.bio.missingFields).toContain("firstName or preferredName");
+    expect(initial.state).toBe("BIO_INTAKE");
 
     await controller.updateBio({
       patient: { firstName: "Ada" },
@@ -23,6 +24,7 @@ describe("SessionController", () => {
     const after = await controller.getSnapshot();
     expect(after.record.patient.firstName).toBe("Ada");
     expect(after.bio.missingFields).not.toContain("firstName or preferredName");
+    expect(after.state).toBe("BIO_INTAKE");
   });
 
   it("clears values when empty strings are submitted", async () => {
@@ -59,6 +61,7 @@ describe("SessionController", () => {
 
     expect(snapshot.record.caseId).toBe("11111111-2222-3333-4444-555555555555");
     expect(snapshot.record.patient.firstName).toBe("Existing");
+    expect(snapshot.state).toBe("BIO_INTAKE");
   });
 
   it("throws when clinician does not own the case", async () => {
@@ -76,5 +79,26 @@ describe("SessionController", () => {
         repository,
       })
     ).rejects.toThrowError(/Clinician not authorized/);
+  });
+
+  it("advances to wound imaging when bio confirmed", async () => {
+    const controller = new SessionController();
+    await controller.updateBio({
+      patient: { firstName: "Ada" },
+      consent: { dataStorage: true, photography: true },
+    });
+
+    await controller.updateBio({
+      patient: { age: 35 },
+      consent: {},
+    });
+
+    const result = await controller.confirmBio();
+    expect(result.ok).toBe(true);
+    expect(result.state).toBe("WOUND_IMAGING");
+
+    const snapshot = await controller.getSnapshot();
+    expect(snapshot.state).toBe("WOUND_IMAGING");
+    expect(snapshot.record.storageMeta.state).toBe("WOUND_IMAGING");
   });
 });

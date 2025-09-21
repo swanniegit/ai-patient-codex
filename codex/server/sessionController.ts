@@ -6,6 +6,7 @@ import { createSessionEnvironment } from "../app/session.js";
 import { createBlankCaseRecord } from "../app/recordFactory.js";
 import { ConsentPreferences, PatientBio } from "../schemas/PatientBio.js";
 import { CaseRecordRepository } from "../app/storage/types.js";
+import { SessionEvent, SessionState, stateTransitions } from "../state/transitions.js";
 
 interface SessionControllerOptions {
   repository?: CaseRecordRepository;
@@ -14,14 +15,14 @@ interface SessionControllerOptions {
 interface SessionSnapshot {
   record: CaseRecord;
   bio: BioAgentOutput;
-  state: "BIO_INTAKE" | "BIO_COMPLETE";
+  state: SessionState;
 }
 
 export class SessionController {
   private context: AgentRunContext;
   private record: CaseRecord;
   private bioResult: BioAgentOutput | null = null;
-  private state: SessionSnapshot["state"] = "BIO_INTAKE";
+  private state: SessionState;
 
   private readonly bioAgent: ReturnType<typeof createBioAgent>;
 
@@ -30,8 +31,10 @@ export class SessionController {
     const dependencies = createAgentDependencies({});
     this.bioAgent = createBioAgent(dependencies);
 
+    this.state = this.resolveInitialState(this.record);
+
     const { context } = createSessionEnvironment(this.record, {
-      initialState: "BIO_INTAKE",
+      initialState: this.state,
       dependencies,
       repository: options.repository,
     });
@@ -44,11 +47,7 @@ export class SessionController {
       await this.updateBio({ patient: {}, consent: {} });
     }
 
-    return {
-      record: this.record,
-      bio: this.bioResult as BioAgentOutput,
-      state: this.state,
-    };
+    return this.snapshot();
   }
 
   async updateBio(rawInput: BioAgentInput): Promise<SessionSnapshot> {
@@ -57,19 +56,21 @@ export class SessionController {
     const result = await this.bioAgent.run(input, this.context);
 
     if (result.updatedRecord) {
-      this.record = result.updatedRecord;
-      this.context.record = result.updatedRecord;
+      this.record = {
+        ...result.updatedRecord,
+        storageMeta: {
+          ...result.updatedRecord.storageMeta,
+          state: this.state,
+        },
+      };
+      this.context.record = this.record;
     }
 
     this.bioResult = result.data;
-    return {
-      record: this.record,
-      bio: result.data,
-      state: this.state,
-    };
+    return this.snapshot();
   }
 
-  async confirmBio(): Promise<{ ok: boolean; missingFields: string[] }> {
+  async confirmBio(): Promise<{ ok: boolean; missingFields: string[]; state: SessionState }> {
     if (!this.bioResult) {
       await this.updateBio({ patient: {}, consent: {} });
     }
@@ -78,11 +79,15 @@ export class SessionController {
     const consentValidated = this.bioResult?.consentValidated ?? false;
 
     if (missing.length || !consentValidated) {
-      return { ok: false, missingFields: missing };
+      return { ok: false, missingFields: missing, state: this.state };
     }
 
-    this.state = "BIO_COMPLETE";
-    return { ok: true, missingFields: [] };
+    await this.transitionState("BIO_CONFIRMED");
+    return { ok: true, missingFields: [], state: this.state };
+  }
+
+  async triggerEvent(event: SessionEvent): Promise<SessionSnapshot> {
+    return this.transitionState(event);
   }
 
   private sanitizeInput(input: BioAgentInput): BioAgentInput {
@@ -169,5 +174,48 @@ export class SessionController {
     if (typeof value !== "string") return undefined;
     const trimmed = value.trim();
     return trimmed.length ? trimmed : undefined;
+  }
+
+  private resolveInitialState(record: CaseRecord): SessionState {
+    const stored = record.storageMeta.state ?? "BIO_INTAKE";
+    return stored === "START" ? "BIO_INTAKE" : stored;
+  }
+
+  private snapshot(): SessionSnapshot {
+    return {
+      record: this.record,
+      bio: this.bioResult as BioAgentOutput,
+      state: this.state,
+    };
+  }
+
+  private async transitionState(event: SessionEvent): Promise<SessionSnapshot> {
+    const nextState = stateTransitions[this.state]?.[event];
+    if (!nextState) {
+      throw new Error(`Cannot transition from ${this.state} using ${event}`);
+    }
+
+    if (this.state === nextState) {
+      return this.snapshot();
+    }
+
+    const updatedAt = new Date().toISOString();
+    this.record = {
+      ...this.record,
+      updatedAt,
+      storageMeta: {
+        ...this.record.storageMeta,
+        state: nextState,
+      },
+    };
+
+    this.context.record = this.record;
+    this.state = nextState;
+
+    if (this.context.autosave) {
+      await this.context.autosave(this.record);
+    }
+
+    return this.snapshot();
   }
 }

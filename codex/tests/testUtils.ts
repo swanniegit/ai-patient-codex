@@ -11,6 +11,7 @@ export const createStubCaseRecord = (overrides: Partial<CaseRecord> = {}): CaseR
   storageMeta: {
     version: 1,
     schema: "codex.wound.v1",
+    state: "BIO_INTAKE",
   },
   patient: {
     patientId: "123e4567-e89b-12d3-a456-426614174099",

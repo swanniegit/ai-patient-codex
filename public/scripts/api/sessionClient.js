@@ -42,6 +42,14 @@ export class SessionClient {
     });
   }
 
+  async triggerEvent(event, payload, signal) {
+    return this.#request(`/session/events/${event}`, {
+      method: "POST",
+      body: payload ? JSON.stringify(payload) : undefined,
+      signal,
+    });
+  }
+
   async #request(path, options) {
     if (!this.identity?.sessionId || !this.identity?.clinicianId) {
       throw new Error("Missing session identity; call setIdentity first");

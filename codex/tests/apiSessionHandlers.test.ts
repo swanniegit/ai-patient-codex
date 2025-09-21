@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import sessionHandler from "../../api/session/index.js";
 import bioHandler from "../../api/session/bio.js";
 import confirmHandler from "../../api/session/bio/confirm.js";
+import eventHandler from "../../api/session/events/[event].js";
 import { resetSessionRuntime } from "../server/sessionRuntime/index.js";
 
 interface MockRequestOptions {
@@ -106,6 +107,7 @@ describe("API session handlers", () => {
     expect(result.status).toBe(200);
     expect(result.body.record.caseId).toBe(SESSION_A);
     expect(result.body.record.clinicianId).toBe(CLINICIAN_A);
+    expect(result.body.state).toBe("BIO_INTAKE");
   });
 
   it("persists bio updates via repository", async () => {
@@ -161,5 +163,30 @@ describe("API session handlers", () => {
 
     expect(result.status).toBe(403);
     expect(result.body.error).toMatch(/not authorized/);
+  });
+
+  it("handles session events", async () => {
+    await runHandler(sessionHandler, {
+      method: "GET",
+      url: "/api/session",
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
+    });
+
+    const rollback = await runHandler(eventHandler, {
+      method: "POST",
+      url: "/api/session/events/BIO_CONFIRMED",
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
+    });
+
+    expect(rollback.status).toBe(200);
+    expect(rollback.body.state).toBe("WOUND_IMAGING");
+
+    const snapshot = await runHandler(sessionHandler, {
+      method: "GET",
+      url: "/api/session",
+      headers: identityHeaders(SESSION_A, CLINICIAN_A),
+    });
+
+    expect(snapshot.body.state).toBe("WOUND_IMAGING");
   });
 });

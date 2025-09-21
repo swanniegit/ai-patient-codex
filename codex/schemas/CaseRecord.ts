@@ -4,6 +4,7 @@ import { PatientBio } from "./PatientBio.js";
 import { TimeBlock } from "./TimeBlock.js";
 import { Vitals } from "./Vitals.js";
 import { WoundPhoto } from "./WoundPhoto.js";
+import { SESSION_STATES } from "../state/transitions.js";
 
 export const EncryptedField = z.object({
   ciphertext: z.string(),
@@ -39,6 +40,18 @@ export const WoundSection = z.object({
     .optional(),
 });
 
+const StorageMeta = z
+  .object({
+    version: z.number().default(1),
+    schema: z.string().default("codex.wound.v1"),
+    state: z.enum(SESSION_STATES).optional(),
+  })
+  .transform((meta) => ({
+    version: meta.version ?? 1,
+    schema: meta.schema ?? "codex.wound.v1",
+    state: meta.state ?? "BIO_INTAKE",
+  }));
+
 export const CaseRecord = z.object({
   caseId: z.string().uuid(),
   clinicianId: z.string().uuid(),
@@ -54,10 +67,7 @@ export const CaseRecord = z.object({
   provenanceLog: z.array(ProvenanceEntry).default([]),
   consentGranted: z.boolean().default(false),
   status: z.enum(["draft", "ready_for_review", "locked"]).default("draft"),
-  storageMeta: z.object({
-    version: z.number().default(1),
-    schema: z.string().default("codex.wound.v1"),
-  }),
+  storageMeta: StorageMeta,
   encryptedFields: z.record(EncryptedField).default({}),
 });
 

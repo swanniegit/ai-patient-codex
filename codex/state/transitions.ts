@@ -1,29 +1,35 @@
-export type SessionState =
-  | "START"
-  | "BIO_INTAKE"
-  | "WOUND_IMAGING"
-  | "VITALS"
-  | "TIME"
-  | "FOLLOW_UP"
-  | "REVIEW"
-  | "ASSEMBLE_JSON"
-  | "LINK_TO_CLINICIAN"
-  | "STORE_SYNC"
-  | "DONE";
+export const SESSION_STATES = [
+  "START",
+  "BIO_INTAKE",
+  "WOUND_IMAGING",
+  "VITALS",
+  "TIME",
+  "FOLLOW_UP",
+  "REVIEW",
+  "ASSEMBLE_JSON",
+  "LINK_TO_CLINICIAN",
+  "STORE_SYNC",
+  "DONE",
+] as const;
 
-export type SessionEvent =
-  | "BEGIN"
-  | "BIO_CONFIRMED"
-  | "IMAGING_CONFIRMED"
-  | "VITALS_CAPTURED"
-  | "TIME_CAPTURED"
-  | "FOLLOW_UP_RESOLVED"
-  | "REVIEW_COMPLETED"
-  | "JSON_ASSEMBLED"
-  | "CLINICIAN_LINKED"
-  | "STORED"
-  | "RESET"
-  | "ROLLBACK";
+export type SessionState = (typeof SESSION_STATES)[number];
+
+export const SESSION_EVENTS = [
+  "BEGIN",
+  "BIO_CONFIRMED",
+  "IMAGING_CONFIRMED",
+  "VITALS_CAPTURED",
+  "TIME_CAPTURED",
+  "FOLLOW_UP_RESOLVED",
+  "REVIEW_COMPLETED",
+  "JSON_ASSEMBLED",
+  "CLINICIAN_LINKED",
+  "STORED",
+  "RESET",
+  "ROLLBACK",
+] as const;
+
+export type SessionEvent = (typeof SESSION_EVENTS)[number];
 
 export const stateTransitions: Record<SessionState, Partial<Record<SessionEvent, SessionState>>> = {
   START: {

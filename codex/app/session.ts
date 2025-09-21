@@ -41,8 +41,9 @@ export const createSessionEnvironment = (
   options: SessionEnvironmentOptions = {}
 ) => {
   const dependencies = options.dependencies ?? createAgentDependencies(options);
+  const initialState = record.storageMeta.state ?? options.initialState ?? "BIO_INTAKE";
   const repository = resolveRepository(options.repository, dependencies.logger);
-  const orchestrator = buildOrchestrator(record, { ...options, dependencies });
+  const orchestrator = buildOrchestrator(record, { ...options, dependencies, initialState });
 
   const context: AgentRunContext = {
     record,
