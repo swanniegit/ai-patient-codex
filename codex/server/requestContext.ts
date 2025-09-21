@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { MissingIdentityError } from "./errors";
+import { MissingIdentityError } from "./errors.js";
 
 const SESSION_HEADER = "x-session-id";
 const CLINICIAN_HEADER = "x-clinician-id";

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { HttpError } from "./errors";
+import { HttpError } from "./errors.js";
 
 export const sendJson = (res: ServerResponse, status: number, payload: unknown) => {
   res.statusCode = status;

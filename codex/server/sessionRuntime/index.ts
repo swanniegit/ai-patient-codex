@@ -4,7 +4,7 @@ import { CaseRecordRepository } from "../../app/storage/types";
 import { MemoryCaseRecordRepository } from "../../app/storage/memoryRepository";
 import { createBlankCaseRecord } from "../../app/recordFactory";
 import { createCaseRecordRepository } from "../../app/storage/supabaseClient";
-import { UnauthorizedAccessError } from "../errors";
+import { UnauthorizedAccessError } from "../errors.js";
 
 const MEMORY_REPO_MAP = Symbol.for("codex#memory-repositories");
 
