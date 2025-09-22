@@ -537,7 +537,7 @@ button[data-state="busy"] {
   flex-wrap: wrap;
 }
 
-.camera-btn, .confirm-btn {
+.camera-btn, .confirm-btn, .check-btn {
   background: var(--accent);
   border: none;
   border-radius: 8px;
@@ -549,6 +549,15 @@ button[data-state="busy"] {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.check-btn {
+  background: var(--warning);
+  margin-right: 1rem;
+}
+
+.check-btn:hover {
+  background: #f59e0b;
 }
 
 .camera-btn:hover, .confirm-btn:hover {

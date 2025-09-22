@@ -24,7 +24,7 @@ export const registerSessionRenderer = ({ store, elements }) => {
     renderConsentBadge(elements.consentBadge, snapshot.bio);
     renderMissingList(elements.missingList, snapshot.bio.missingFields);
     renderFormValues(elements.form, snapshot.record);
-    updateConfirmButton(elements.confirmButton, snapshot.bio, phase);
+    // Removed automatic confirm button updates - now manual via Check Input button
     updateTimeline(elements.timeline, snapshot);
     renderSessionPhase(elements.sessionPhase, snapshot);
     managePanelVisibility(snapshot.state);

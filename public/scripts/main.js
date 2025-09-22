@@ -10,6 +10,7 @@ const elements = {
   consentBadge: document.querySelector("#consent-status"),
   statusMessage: document.querySelector("#save-status"),
   recordMeta: document.querySelector("#record-meta"),
+  checkButton: document.querySelector("#check-input"),
   confirmButton: document.querySelector("#confirm-bio"),
   timeline: document.querySelector("#state-timeline"),
   sessionPhase: document.querySelector("#session-phase"),
@@ -96,6 +97,7 @@ client.setIdentity(identity);
 registerSessionRenderer({ store, elements });
 registerBioForm({
   form: elements.form,
+  checkButton: elements.checkButton,
   confirmButton: elements.confirmButton,
   store,
   client,

@@ -1,6 +1,6 @@
 import { mergePayloads } from "../utils/mergePayloads.js";
 
-export const registerBioForm = ({ form, confirmButton, store, client }) => {
+export const registerBioForm = ({ form, checkButton, confirmButton, store, client }) => {
   if (!form) {
     throw new Error("Missing bio form element");
   }
@@ -64,6 +64,46 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
 
     return allPatches;
   };
+
+  // Manual validation with Check Input button
+  if (checkButton) {
+    checkButton.addEventListener("click", async () => {
+      // Collect form data and validate
+      const allData = collectFormData();
+
+      store.setState({ phase: "checking", message: "Checking input...", error: null });
+
+      try {
+        // Send data to server for validation without saving
+        const response = await client.updateBio(allData);
+
+        if (response.bio.missingFields.length === 0 && response.bio.consentValidated) {
+          // Validation passed - enable confirm button
+          confirmButton.disabled = false;
+          store.setState({
+            snapshot: response,
+            phase: "ready",
+            message: "✅ All required fields complete - ready to confirm",
+            error: null
+          });
+        } else {
+          // Validation failed - show what's missing
+          const missing = response.bio.missingFields.join(", ") || "consent";
+          confirmButton.disabled = true;
+          store.setState({
+            snapshot: response,
+            phase: "ready",
+            message: `❌ Missing: ${missing}`,
+            error: null
+          });
+        }
+      } catch (error) {
+        confirmButton.disabled = true;
+        const message = error instanceof Error ? error.message : "Validation failed";
+        store.setState({ phase: "error", message, error: message });
+      }
+    });
+  }
 
   if (confirmButton) {
     confirmButton.addEventListener("click", async () => {
