@@ -16,15 +16,15 @@ type LegacyBioInput = {
 // Support both legacy and new multi-modal input formats
 interface BioEndpointInput {
   // Legacy format (backward compatibility)
-  patient?: Partial<any>;
-  consent?: Partial<any>;
+  patient?: Partial<PatientBio>;
+  consent?: Partial<ConsentPreferences>;
 
   // New multi-modal format
   inputType?: "text" | "audio" | "ocr";
   artifact?: ArtifactRef;
   directInput?: {
-    patient?: Partial<any>;
-    consent?: Partial<any>;
+    patient?: Partial<PatientBio>;
+    consent?: Partial<ConsentPreferences>;
   };
 }
 

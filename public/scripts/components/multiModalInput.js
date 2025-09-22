@@ -171,13 +171,6 @@ export const registerMultiModalInput = ({ store, client }) => {
     }
   };
 
-  // Audio recording
-  if (startRecordBtn && stopRecordBtn) {
-    startRecordBtn.addEventListener('click', startRecording);
-    stopRecordBtn.addEventListener('click', stopRecording);
-    uploadAudioBtn?.addEventListener('click', uploadAudio);
-  }
-
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -341,4 +334,11 @@ export const registerMultiModalInput = ({ store, client }) => {
       recordingStatus.className = `status ${type}`;
     }
   };
+
+  // Audio recording event listeners (after function definitions)
+  if (startRecordBtn && stopRecordBtn) {
+    startRecordBtn.addEventListener('click', startRecording);
+    stopRecordBtn.addEventListener('click', stopRecording);
+    uploadAudioBtn?.addEventListener('click', uploadAudio);
+  }
 };

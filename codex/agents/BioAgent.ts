@@ -1,7 +1,6 @@
 import { Agent } from "./AgentInterface.js";
 import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
 import { PatientBio, ConsentPreferences } from "../schemas/PatientBio.js";
-import { ArtifactRef } from "../schemas/ArtifactRef.js";
 
 export interface BioAgentInput {
   // Direct structured input
