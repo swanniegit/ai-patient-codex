@@ -40,6 +40,7 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
     store.applyLocalPatch(patch);
   };
 
+  // Only update local state on input, don't auto-save
   form.addEventListener("input", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
@@ -47,11 +48,22 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
     markUnsaved();
   });
 
-  form.addEventListener("change", (event) => {
+  // Save when user finishes editing a field (blur event)
+  form.addEventListener("blur", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
     applyPatch(patch);
     flushPatch();
+  }, true); // Use capture to handle all blur events
+
+  // Also save on explicit change events (checkboxes, etc.)
+  form.addEventListener("change", (event) => {
+    if (event.target.type === "checkbox" || event.target.type === "radio") {
+      const patch = buildPatchForField(event.target);
+      if (!patch) return;
+      applyPatch(patch);
+      flushPatch();
+    }
   });
 
   if (confirmButton) {
