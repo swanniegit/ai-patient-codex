@@ -27,6 +27,7 @@ export const registerSessionRenderer = ({ store, elements }) => {
     updateConfirmButton(elements.confirmButton, snapshot.bio, phase);
     updateTimeline(elements.timeline, snapshot);
     renderSessionPhase(elements.sessionPhase, snapshot);
+    managePanelVisibility(snapshot.state);
   });
 };
 
@@ -172,5 +173,35 @@ const statusLabel = (status) => {
       return "In progress";
     default:
       return "Pending";
+  }
+};
+
+const managePanelVisibility = (state) => {
+  // Get panel elements
+  const bioPanel = document.querySelector('.panel:has(#bio-form)') || document.querySelector('.panel');
+  const woundPanel = document.getElementById('wound-imaging-panel');
+
+  // Show/hide panels based on session state
+  switch (state) {
+    case 'START':
+    case 'BIO_INTAKE':
+      if (bioPanel) bioPanel.style.display = 'block';
+      if (woundPanel) woundPanel.style.display = 'none';
+      break;
+
+    case 'WOUND_IMAGING':
+      if (bioPanel) bioPanel.style.display = 'none';
+      if (woundPanel) woundPanel.style.display = 'block';
+      break;
+
+    case 'VITALS':
+    case 'TIME':
+    case 'FOLLOW_UP':
+    case 'REVIEW':
+    default:
+      // For now, hide both panels for other states
+      if (bioPanel) bioPanel.style.display = 'none';
+      if (woundPanel) woundPanel.style.display = 'none';
+      break;
   }
 };

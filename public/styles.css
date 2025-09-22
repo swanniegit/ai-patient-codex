@@ -515,3 +515,122 @@ button[data-state="busy"] {
   max-height: 100px;
   border-radius: 4px;
 }
+
+/* Wound Imaging Styles */
+.imaging-interface {
+  padding: 1rem 0;
+}
+
+.camera-controls, .upload-alternative, .photo-gallery {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.camera-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.camera-btn, .confirm-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.camera-btn:hover, .confirm-btn:hover {
+  background: #0ea5e9;
+}
+
+.camera-btn:disabled, .confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.camera-btn.active {
+  background: #dc2626;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photo-item {
+  position: relative;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.photo-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.photo-item .photo-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.photo-item .delete-btn {
+  background: rgba(220, 38, 38, 0.9);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.photo-item .photo-info {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.imaging-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+#wound-imaging-panel {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

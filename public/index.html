@@ -152,6 +152,62 @@
         </div>
       </section>
 
+      <section class="panel" id="wound-imaging-panel" style="display: none;">
+        <div class="panel-header">
+          <h2>Wound Imaging</h2>
+          <span id="imaging-meta" class="meta"></span>
+        </div>
+        <p class="lead">Capture and upload wound photographs for clinical review.</p>
+
+        <div class="imaging-interface">
+          <div class="camera-controls">
+            <h3>Take Photos</h3>
+            <div class="camera-actions">
+              <button type="button" id="start-camera" class="camera-btn">
+                <span class="icon">📷</span>
+                Start Camera
+              </button>
+              <button type="button" id="capture-photo" class="camera-btn" disabled>
+                <span class="icon">📸</span>
+                Capture Photo
+              </button>
+              <button type="button" id="stop-camera" class="camera-btn" disabled>
+                <span class="icon">⏹️</span>
+                Stop Camera
+              </button>
+            </div>
+            <video id="camera-preview" autoplay playsinline style="display: none; width: 100%; max-width: 400px; border-radius: 8px; margin: 1rem 0;"></video>
+            <canvas id="photo-canvas" style="display: none;"></canvas>
+          </div>
+
+          <div class="upload-alternative">
+            <h3>Or Upload Photos</h3>
+            <div class="upload-area" id="wound-upload-area">
+              <div class="upload-content">
+                <span class="upload-icon">📁</span>
+                <p>Drag & drop wound photos here or click to browse</p>
+                <p class="upload-note">Supports: JPG, PNG (max 10MB each)</p>
+              </div>
+              <input type="file" id="wound-file-input" accept="image/*" multiple style="display: none;">
+            </div>
+          </div>
+
+          <div class="photo-gallery" id="photo-gallery">
+            <h3>Captured Photos</h3>
+            <div class="gallery-grid" id="gallery-grid">
+              <!-- Photos will be added here -->
+            </div>
+          </div>
+
+          <div class="imaging-actions">
+            <button type="button" id="confirm-imaging" class="confirm-btn" disabled>
+              Complete Wound Imaging
+            </button>
+            <span id="imaging-status" class="status">No photos captured</span>
+          </div>
+        </div>
+      </section>
+
       <section class="panel">
         <div class="panel-header">
           <h2>Workflow Status</h2>

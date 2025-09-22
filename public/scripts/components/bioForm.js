@@ -33,30 +33,44 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
 
   // Removed markUnsaved and applyPatch functions to eliminate keystroke refreshing
 
-  // Remove all real-time updates - no more refreshing on keystroke!
+  // COMPLETELY MANUAL SAVING - No automatic saves, no refreshing!
+  // All changes are collected and saved only when user clicks "Confirm bio intake"
 
-  // Save only when user finishes editing a field (blur event)
-  form.addEventListener("blur", (event) => {
-    const patch = buildPatchForField(event.target);
-    if (!patch) return;
-    // Just save, don't update UI until save completes
-    pendingPatch = mergePayloads(pendingPatch, patch);
-    flushPatch();
-  }, true);
+  // Collect all form changes without saving
+  const collectFormData = () => {
+    const formData = new FormData(form);
+    const allPatches = {};
 
-  // Save on checkboxes/radio immediately
-  form.addEventListener("change", (event) => {
-    if (event.target.type === "checkbox" || event.target.type === "radio") {
-      const patch = buildPatchForField(event.target);
-      if (!patch) return;
-      pendingPatch = mergePayloads(pendingPatch, patch);
-      flushPatch();
+    // Collect all field data
+    for (const [key, value] of formData.entries()) {
+      const field = form.elements[key];
+      if (field) {
+        const patch = buildPatchForField(field);
+        if (patch) {
+          Object.assign(allPatches, patch);
+        }
+      }
     }
-  });
+
+    // Handle text fields that might not be in FormData
+    form.querySelectorAll('input[type="text"], input[type="date"], input[type="number"], textarea').forEach(field => {
+      if (field.name && field.value.trim()) {
+        const patch = buildPatchForField(field);
+        if (patch) {
+          Object.assign(allPatches, patch);
+        }
+      }
+    });
+
+    return allPatches;
+  };
 
   if (confirmButton) {
     confirmButton.addEventListener("click", async () => {
-      if (pendingPatch) {
+      // Collect all form data at once and save
+      const allData = collectFormData();
+      if (Object.keys(allData).length > 0) {
+        pendingPatch = allData;
         await flushPatch();
       }
     store.setState({ phase: "confirming", message: "Confirming...", error: null });
@@ -71,9 +85,31 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
             store.setState({
               snapshot: nextSnapshot,
               phase: "ready",
-              message: response?.pin ? `Bio intake complete · PIN ${response.pin}` : "Bio intake complete",
+              message: response?.pin ? `Bio intake complete · PIN ${response.pin} · Proceeding to wound imaging...` : "Bio intake complete · Proceeding to wound imaging...",
               error: null,
             });
+
+            // Automatically progress to wound imaging after a brief delay
+            setTimeout(async () => {
+              try {
+                await client.triggerEvent("BIO_CONFIRMED");
+                const finalSnapshot = await client.getSnapshot();
+                store.setState({
+                  snapshot: finalSnapshot,
+                  phase: "ready",
+                  message: "Ready for wound imaging",
+                  error: null,
+                });
+              } catch (progressError) {
+                console.error("Failed to progress to wound imaging:", progressError);
+                store.setState({
+                  phase: "ready",
+                  message: "Bio complete - please proceed manually to wound imaging",
+                  error: null,
+                });
+              }
+            }, 2000); // 2 second delay to show completion message
+
           } catch (pinError) {
             const message = pinError instanceof Error ? pinError.message : "PIN generation failed";
             store.setState({ phase: "ready", message, error: message });
