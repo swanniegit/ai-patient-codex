@@ -2,6 +2,7 @@ import { createSessionClient } from "./api/sessionClient.js";
 import { createSessionStore } from "./state/sessionStore.js";
 import { registerBioForm } from "./components/bioForm.js";
 import { registerSessionRenderer } from "./components/sessionRenderer.js";
+import { registerMultiModalInput } from "./components/multiModalInput.js";
 
 const elements = {
   form: document.querySelector("#bio-form"),
@@ -99,6 +100,7 @@ registerBioForm({
   store,
   client,
 });
+registerMultiModalInput({ store, client });
 
 const bootstrap = async () => {
   store.setState({ phase: "loading", message: "Loading session...", error: null });

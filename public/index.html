@@ -19,9 +19,32 @@
           <h2>Patient Bio Intake</h2>
           <span id="record-meta" class="meta"></span>
         </div>
-        <p class="lead">Enter or confirm demographics and consent before progressing.</p>
+        <p class="lead">Choose your input method: form, voice recording, or document scanning.</p>
 
-        <form id="bio-form" autocomplete="off">
+        <!-- Input Method Selection -->
+        <div class="input-method-selector">
+          <h3>How would you like to provide patient information?</h3>
+          <div class="method-options">
+            <button type="button" class="method-option active" data-method="text">
+              <span class="icon">📝</span>
+              <span class="title">Text Input</span>
+              <span class="desc">Fill out the form manually</span>
+            </button>
+            <button type="button" class="method-option" data-method="audio">
+              <span class="icon">🎤</span>
+              <span class="title">Voice Recording</span>
+              <span class="desc">Record patient information</span>
+            </button>
+            <button type="button" class="method-option" data-method="ocr">
+              <span class="icon">📷</span>
+              <span class="title">Document Scan</span>
+              <span class="desc">Upload ID card or form</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text Input Form (default) -->
+        <form id="bio-form" autocomplete="off" class="input-panel active">
           <div class="grid">
             <label>
               <span>First name</span>
@@ -76,6 +99,57 @@
             <span id="save-status" class="status">Loading session...</span>
           </div>
         </form>
+
+        <!-- Audio Input Panel -->
+        <div id="audio-panel" class="input-panel">
+          <div class="audio-recorder">
+            <h3>Voice Recording</h3>
+            <p>Click record and describe the patient information clearly.</p>
+            <div class="recorder-controls">
+              <button type="button" id="start-recording" class="record-btn">
+                <span class="icon">🎤</span>
+                Start Recording
+              </button>
+              <button type="button" id="stop-recording" class="record-btn" disabled>
+                <span class="icon">⏹️</span>
+                Stop Recording
+              </button>
+            </div>
+            <div id="recording-status" class="status"></div>
+            <audio id="audio-playback" controls style="display: none;"></audio>
+            <button type="button" id="upload-audio" class="upload-btn" disabled>
+              Process Audio Recording
+            </button>
+          </div>
+        </div>
+
+        <!-- OCR Input Panel -->
+        <div id="ocr-panel" class="input-panel">
+          <div class="file-uploader">
+            <h3>Document Scanner</h3>
+            <p>Upload a patient ID card, form, or document to extract information.</p>
+            <div class="upload-area" id="upload-area">
+              <div class="upload-content">
+                <span class="upload-icon">📁</span>
+                <p>Drag & drop files here or click to browse</p>
+                <p class="upload-note">Supports: JPG, PNG, PDF (max 10MB)</p>
+              </div>
+              <input type="file" id="file-input" accept="image/*,.pdf" multiple style="display: none;">
+            </div>
+            <div id="upload-status" class="status"></div>
+            <div id="file-preview"></div>
+          </div>
+        </div>
+
+        <!-- Processing Results -->
+        <div id="processing-results" class="processing-results" style="display: none;">
+          <h3>Extracted Information</h3>
+          <div id="extracted-data"></div>
+          <div class="processing-actions">
+            <button type="button" id="accept-extracted" class="accept-btn">Accept & Continue</button>
+            <button type="button" id="edit-extracted" class="edit-btn">Edit Manually</button>
+          </div>
+        </div>
       </section>
 
       <section class="panel">
