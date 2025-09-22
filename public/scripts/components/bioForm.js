@@ -31,37 +31,25 @@ export const registerBioForm = ({ form, confirmButton, store, client }) => {
     }
   };
 
-  const markUnsaved = () => {
-    store.setState({ phase: "ready", message: "Unsaved changes", error: null });
-  };
+  // Removed markUnsaved and applyPatch functions to eliminate keystroke refreshing
 
-  const applyPatch = (patch) => {
-    pendingPatch = mergePayloads(pendingPatch, patch);
-    store.applyLocalPatch(patch);
-  };
+  // Remove all real-time updates - no more refreshing on keystroke!
 
-  // Only update local state on input, don't auto-save
-  form.addEventListener("input", (event) => {
-    const patch = buildPatchForField(event.target);
-    if (!patch) return;
-    applyPatch(patch);
-    markUnsaved();
-  });
-
-  // Save when user finishes editing a field (blur event)
+  // Save only when user finishes editing a field (blur event)
   form.addEventListener("blur", (event) => {
     const patch = buildPatchForField(event.target);
     if (!patch) return;
-    applyPatch(patch);
+    // Just save, don't update UI until save completes
+    pendingPatch = mergePayloads(pendingPatch, patch);
     flushPatch();
-  }, true); // Use capture to handle all blur events
+  }, true);
 
-  // Also save on explicit change events (checkboxes, etc.)
+  // Save on checkboxes/radio immediately
   form.addEventListener("change", (event) => {
     if (event.target.type === "checkbox" || event.target.type === "radio") {
       const patch = buildPatchForField(event.target);
       if (!patch) return;
-      applyPatch(patch);
+      pendingPatch = mergePayloads(pendingPatch, patch);
       flushPatch();
     }
   });
