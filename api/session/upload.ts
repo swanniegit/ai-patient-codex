@@ -59,8 +59,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       }
 
       // For Vercel, we'll create a data URL instead of file storage
-      const fileBuffer = await uploadedFile.arrayBuffer();
-      const base64Data = Buffer.from(fileBuffer).toString('base64');
+      // Read file data from formidable File object
+      const fs = await import("fs");
+      const fileBuffer = await fs.promises.readFile(uploadedFile.filepath);
+      const base64Data = fileBuffer.toString('base64');
       const mimeType = uploadedFile.mimetype || 'application/octet-stream';
       const dataUrl = `data:${mimeType};base64,${base64Data}`;
 

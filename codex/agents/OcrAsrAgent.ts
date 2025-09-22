@@ -167,7 +167,7 @@ export class OcrAsrAgent implements Agent<OcrAsrInput, OcrAsrOutput> {
       const audioBuffer = await this.getArtifactData(artifact);
 
       // Create a File object from the buffer
-      const audioFile = new File([audioBuffer], "audio.mp3", {
+      const audioFile = new File([new Uint8Array(audioBuffer)], "audio.mp3", {
         type: artifact.metadata?.mimeType || "audio/mpeg"
       });
 

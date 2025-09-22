@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { BioAgent, BioAgentInput, InputType } from "../agents/BioAgent.js";
+import { BioAgent, BioAgentInput } from "../agents/BioAgent.js";
+import { InputType } from "../agents/InputRouter.js";
 import { OcrAsrAgent, OcrAsrInput } from "../agents/OcrAsrAgent.js";
 import { InputRouter, InputRouterInput } from "../agents/InputRouter.js";
 import { AgentDependencies, AgentRunContext } from "../agents/AgentContext.js";
@@ -43,6 +44,7 @@ const mockContext: AgentRunContext = {
       version: 1,
       schema: "codex.wound.v1",
       state: "BIO_INTAKE",
+      pinIssuedAt: undefined,
     },
     encryptedFields: {},
   } as CaseRecord,
@@ -68,41 +70,46 @@ describe("Multi-Modal Bio Input System", () => {
   describe("BioAgent Enhanced Input", () => {
     it("should handle text input type", async () => {
       const input: BioAgentInput = {
-        inputType: "text",
         patient: { firstName: "Jane", lastName: "Smith" },
         consent: { dataStorage: true, photography: true, sharingToTeamBoard: false },
+        sourceInfo: {
+          inputMethod: "text",
+          artifactId: undefined,
+        },
       };
 
       const result = await bioAgent.run(input, mockContext);
 
-      expect(result.data.inputSource).toBe("text");
+      expect(result.data.patient.firstName).toBe("Jane");
       expect(result.data.patient.firstName).toBe("Jane");
       expect(result.data.patient.lastName).toBe("Smith");
       expect(result.data.consentValidated).toBe(true);
     });
 
-    it("should handle OCR input type with rawText", async () => {
+    it("should handle OCR input type with textToParse", async () => {
       const input: BioAgentInput = {
-        inputType: "ocr",
-        rawText: "Patient: John Doe, Age: 45, Male, MRN: 123456",
+        textToParse: "Patient: John Doe, Age: 45, Male, MRN: 123456",
+        sourceInfo: {
+          inputMethod: "ocr",
+          artifactId: "test-artifact-123",
+        },
       };
 
       const result = await bioAgent.run(input, mockContext);
-
-      expect(result.data.inputSource).toBe("ocr");
       expect(result.data.extractedData).toBeDefined();
       expect(mockDependencies.llm!.generate).toHaveBeenCalled();
     });
 
-    it("should handle audio input type with rawText", async () => {
+    it("should handle audio input type with textToParse", async () => {
       const input: BioAgentInput = {
-        inputType: "audio",
-        rawText: "Patient states name is Sarah Johnson, date of birth January 1st 1980",
+        textToParse: "Patient states name is Sarah Johnson, date of birth January 1st 1980",
+        sourceInfo: {
+          inputMethod: "audio",
+          artifactId: "test-audio-456",
+        },
       };
 
       const result = await bioAgent.run(input, mockContext);
-
-      expect(result.data.inputSource).toBe("audio");
       expect(result.data.extractedData).toBeDefined();
       expect(mockDependencies.llm!.generate).toHaveBeenCalled();
     });
@@ -116,9 +123,11 @@ describe("Multi-Modal Bio Input System", () => {
       };
 
       const input: BioAgentInput = {
-        inputType: "ocr",
-        artifact,
-        rawText: "Some extracted text",
+        textToParse: "Some extracted text",
+        sourceInfo: {
+          inputMethod: "ocr",
+          artifactId: artifact.id,
+        },
       };
 
       const result = await bioAgent.run(input, mockContext);
@@ -136,8 +145,11 @@ describe("Multi-Modal Bio Input System", () => {
       });
 
       const input: BioAgentInput = {
-        inputType: "ocr",
-        rawText: "Some text",
+        textToParse: "Some text",
+        sourceInfo: {
+          inputMethod: "ocr",
+          artifactId: undefined,
+        },
       };
 
       const result = await bioAgent.run(input, mockContext);
@@ -159,7 +171,7 @@ describe("Multi-Modal Bio Input System", () => {
 
       const result = await inputRouter.run(input, mockContext);
 
-      expect(result.data.bioResult.inputSource).toBe("text");
+      // inputSource was removed from BioAgentOutput in the clean redesign
       expect(result.data.bioResult.patient.firstName).toBe("Alice");
       expect(result.data.ocrAsrResult).toBeUndefined();
       expect(result.data.processingFlow).toContain("Started text input processing");

@@ -1,9 +1,11 @@
 import { Agent } from "./AgentInterface.js";
 import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.js";
 import { ArtifactRef } from "../schemas/ArtifactRef.js";
-import { BioAgent, BioAgentInput, BioAgentOutput, InputType } from "./BioAgent.js";
+import { BioAgent, BioAgentInput, BioAgentOutput } from "./BioAgent.js";
 import { OcrAsrAgent, OcrAsrInput, OcrAsrOutput, OcrAsrConfig } from "./OcrAsrAgent.js";
 import { PatientBio, ConsentPreferences } from "../schemas/PatientBio.js";
+
+export type InputType = "text" | "audio" | "ocr";
 
 export interface InputRouterInput {
   inputType: InputType;
@@ -72,19 +74,27 @@ export class InputRouter implements Agent<InputRouterInput, InputRouterOutput> {
       processingFlow.push("Processing with BioAgent");
 
       const bioInput: BioAgentInput = {
-        inputType: input.inputType,
         patient: input.directInput?.patient,
         consent: input.directInput?.consent,
-        artifact: input.artifact,
-        rawText: extractedText,
+        textToParse: extractedText,
+        sourceInfo: {
+          inputMethod: input.inputType,
+          artifactId: input.artifact?.id,
+        },
       };
 
       const bioAgentResult = await this.bioAgent.run(bioInput, context);
       processingFlow.push(`BioAgent completed - extracted ${Object.keys(bioAgentResult.data.extractedData || {}).length} fields`);
 
       // Combine provenance entries from both agents
+      const ocrAsrProvenance = ocrAsrResult ? [{
+        agent: this.ocrAsrAgent.name,
+        field: `artifact:${ocrAsrResult.artifactId}:transcription`,
+        timestamp: new Date().toISOString(),
+        notes: `${ocrAsrResult.processingMethod.toUpperCase()} processing completed with confidence ${ocrAsrResult.confidence.toFixed(2)}`,
+      }] : [];
       const combinedProvenance = [
-        ...(ocrAsrAgentResult?.provenance || []),
+        ...ocrAsrProvenance,
         ...(bioAgentResult.provenance || []),
       ];
 
@@ -111,9 +121,12 @@ export class InputRouter implements Agent<InputRouterInput, InputRouterOutput> {
 
       // Return a fallback result
       const fallbackBioInput: BioAgentInput = {
-        inputType: "text",
         patient: input.directInput?.patient || {},
         consent: input.directInput?.consent || {},
+        sourceInfo: {
+          inputMethod: "text",
+          artifactId: undefined,
+        },
       };
 
       const fallbackResult = await this.bioAgent.run(fallbackBioInput, context);

@@ -3,21 +3,25 @@ import { AgentDependencies, AgentResult, AgentRunContext } from "./AgentContext.
 import { PatientBio, ConsentPreferences } from "../schemas/PatientBio.js";
 import { ArtifactRef } from "../schemas/ArtifactRef.js";
 
-export type InputType = "text" | "audio" | "ocr";
-
 export interface BioAgentInput {
-  inputType: InputType;
+  // Direct structured input
   patient?: Partial<PatientBio>;
   consent?: Partial<ConsentPreferences>;
-  artifact?: ArtifactRef;
-  rawText?: string;
+
+  // Raw text to parse (from any source - OCR, ASR, or direct)
+  textToParse?: string;
+
+  // Metadata for provenance only (not for business logic)
+  sourceInfo?: {
+    inputMethod: "text" | "ocr" | "audio";
+    artifactId?: string;
+  };
 }
 
 export interface BioAgentOutput {
   patient: PatientBio;
   consentValidated: boolean;
   missingFields: string[];
-  inputSource: InputType;
   extractedData?: Partial<PatientBio>;
 }
 
@@ -32,12 +36,10 @@ export class BioAgent implements Agent<BioAgentInput, BioAgentOutput> {
     let patientData = input.patient || {};
     let consentData = input.consent || {};
 
-    // Handle multi-modal input processing
-    if (input.inputType === "audio" || input.inputType === "ocr") {
-      if (input.rawText) {
-        extractedData = await this.parseTextToPatientBio(input.rawText, context);
-        patientData = { ...patientData, ...extractedData };
-      }
+    // Parse any text input (regardless of source)
+    if (input.textToParse) {
+      extractedData = await this.parseTextToPatientBio(input.textToParse, context);
+      patientData = { ...patientData, ...extractedData };
     }
 
     const mergedPatient = this.mergePatient(context, { patient: patientData, consent: consentData });
@@ -55,8 +57,8 @@ export class BioAgent implements Agent<BioAgentInput, BioAgentOutput> {
       await context.autosave(nextRecord);
     }
 
-    const provenanceNotes = input.inputType !== "text"
-      ? `Data extracted from ${input.inputType} input${input.artifact ? ` (artifact: ${input.artifact.id})` : ""}`
+    const provenanceNotes = input.sourceInfo && input.sourceInfo.inputMethod !== "text"
+      ? `Data extracted from ${input.sourceInfo.inputMethod} input${input.sourceInfo.artifactId ? ` (artifact: ${input.sourceInfo.artifactId})` : ""}`
       : undefined;
 
     return {
@@ -64,7 +66,6 @@ export class BioAgent implements Agent<BioAgentInput, BioAgentOutput> {
         patient: mergedPatient,
         consentValidated: consentValid,
         missingFields: missing,
-        inputSource: input.inputType,
         extractedData,
       },
       updatedRecord: nextRecord,
@@ -74,7 +75,7 @@ export class BioAgent implements Agent<BioAgentInput, BioAgentOutput> {
           agent: this.name,
           field: "patient",
           timestamp: new Date().toISOString(),
-          artifactId: input.artifact?.id,
+          artifactId: input.sourceInfo?.artifactId,
           notes: provenanceNotes || (missing.length ? "Awaiting confirmation on missing demographic fields" : undefined),
         },
       ],

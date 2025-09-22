@@ -1,5 +1,6 @@
 import { AgentRunContext } from "../agents/AgentContext.js";
 import { BioAgentInput, BioAgentOutput, createBioAgent } from "../agents/BioAgent.js";
+import { InputRouter, InputRouterInput, InputRouterOutput, createInputRouter } from "../agents/InputRouter.js";
 import { CaseRecord } from "../schemas/CaseRecord.js";
 import { createAgentDependencies } from "../app/dependencies.js";
 import { createSessionEnvironment } from "../app/session.js";
@@ -12,10 +13,17 @@ interface SessionControllerOptions {
   repository?: CaseRecordRepository;
 }
 
+// Legacy input format for backward compatibility
+interface LegacyBioInput {
+  patient: Partial<PatientBio>;
+  consent: Partial<ConsentPreferences>;
+}
+
 interface SessionSnapshot {
   record: CaseRecord;
   bio: BioAgentOutput;
   state: SessionState;
+  processingFlow?: string[];
 }
 
 export class SessionController {
@@ -25,11 +33,13 @@ export class SessionController {
   private state: SessionState;
 
   private readonly bioAgent: ReturnType<typeof createBioAgent>;
+  private readonly inputRouter: ReturnType<typeof createInputRouter>;
 
   constructor(record?: CaseRecord, options: SessionControllerOptions = {}) {
     this.record = record ?? createBlankCaseRecord();
     const dependencies = createAgentDependencies({});
     this.bioAgent = createBioAgent(dependencies);
+    this.inputRouter = createInputRouter(dependencies);
 
     this.state = this.resolveInitialState(this.record);
 
@@ -50,10 +60,21 @@ export class SessionController {
     return this.snapshot();
   }
 
-  async updateBio(rawInput: BioAgentInput): Promise<SessionSnapshot> {
-    const input = this.sanitizeInput(rawInput);
+  async updateBio(rawInput: LegacyBioInput): Promise<SessionSnapshot> {
+    const sanitized = this.sanitizeInput(rawInput);
+
+    // Convert legacy input to new BioAgentInput format
+    const bioInput: BioAgentInput = {
+      patient: sanitized.patient,
+      consent: sanitized.consent,
+      sourceInfo: {
+        inputMethod: "text",
+        artifactId: undefined,
+      },
+    };
+
     this.context.record = this.record;
-    const result = await this.bioAgent.run(input, this.context);
+    const result = await this.bioAgent.run(bioInput, this.context);
 
     if (result.updatedRecord) {
       this.record = {
@@ -68,6 +89,28 @@ export class SessionController {
 
     this.bioResult = result.data;
     return this.snapshot();
+  }
+
+  async updateBioMultiModal(input: InputRouterInput): Promise<SessionSnapshot> {
+    this.context.record = this.record;
+    const result = await this.inputRouter.run(input, this.context);
+
+    if (result.updatedRecord) {
+      this.record = {
+        ...result.updatedRecord,
+        storageMeta: {
+          ...result.updatedRecord.storageMeta,
+          state: this.state,
+        },
+      };
+      this.context.record = this.record;
+    }
+
+    this.bioResult = result.data.bioResult;
+    return {
+      ...this.snapshot(),
+      processingFlow: result.data.processingFlow,
+    };
   }
 
   async confirmBio(): Promise<{ ok: boolean; missingFields: string[]; state: SessionState }> {
@@ -90,6 +133,10 @@ export class SessionController {
     return this.transitionState(event);
   }
 
+  getCurrentState(): SessionState {
+    return this.state;
+  }
+
   async assignPin(hash: string, issuedAt: string): Promise<SessionSnapshot> {
     this.record = {
       ...this.record,
@@ -107,7 +154,7 @@ export class SessionController {
     return this.snapshot();
   }
 
-  private sanitizeInput(input: BioAgentInput): BioAgentInput {
+  private sanitizeInput(input: LegacyBioInput): LegacyBioInput {
     return {
       patient: this.cleanPatient(input.patient),
       consent: this.cleanConsent(input.consent),

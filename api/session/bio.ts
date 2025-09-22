@@ -3,11 +3,18 @@ import { createSessionController } from "../../codex/server/sessionRuntime/index
 import { extractRequestContext } from "../../codex/server/requestContext.js";
 import { handleError, readJsonBody, sendJson, sendMethodNotAllowed } from "../../codex/server/httpHelpers.js";
 import type { InputRouterInput } from "../../codex/agents/InputRouter.js";
-import type { BioAgentInput } from "../../codex/agents/BioAgent.js";
 import type { ArtifactRef } from "../../codex/schemas/ArtifactRef.js";
 
+import { PatientBio, ConsentPreferences } from "../../codex/schemas/PatientBio.js";
+
+// Legacy format - defined inline for backward compatibility
+type LegacyBioInput = {
+  patient: Partial<PatientBio>;
+  consent: Partial<ConsentPreferences>;
+};
+
 // Support both legacy and new multi-modal input formats
-interface BioEndpointInput extends Partial<BioAgentInput> {
+interface BioEndpointInput {
   // Legacy format (backward compatibility)
   patient?: Partial<any>;
   consent?: Partial<any>;
@@ -47,8 +54,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         });
       } else {
         // Handle legacy input format for backward compatibility
-        const legacyInput: BioAgentInput = {
-          inputType: "text",
+        const legacyInput: LegacyBioInput = {
           patient: body.patient ?? {},
           consent: body.consent ?? {},
         };
@@ -67,10 +73,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       // Return current bio state and supported input types
       const { caseId, clinicianId } = extractRequestContext(req);
       const controller = await createSessionController({ caseId, clinicianId });
-      const currentState = await controller.getCurrentState();
+      const snapshot = await controller.getSnapshot();
 
       sendJson(res, 200, {
-        patient: currentState.record.patient,
+        patient: snapshot.record.patient,
         supportedInputTypes: ["text", "audio", "ocr"],
         inputOptions: {
           text: {
