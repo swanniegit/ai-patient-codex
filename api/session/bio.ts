@@ -2,23 +2,97 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSessionController } from "../../codex/server/sessionRuntime/index.js";
 import { extractRequestContext } from "../../codex/server/requestContext.js";
 import { handleError, readJsonBody, sendJson, sendMethodNotAllowed } from "../../codex/server/httpHelpers.js";
+import type { InputRouterInput } from "../../codex/agents/InputRouter.js";
 import type { BioAgentInput } from "../../codex/agents/BioAgent.js";
+import type { ArtifactRef } from "../../codex/schemas/ArtifactRef.js";
+
+// Support both legacy and new multi-modal input formats
+interface BioEndpointInput extends Partial<BioAgentInput> {
+  // Legacy format (backward compatibility)
+  patient?: Partial<any>;
+  consent?: Partial<any>;
+
+  // New multi-modal format
+  inputType?: "text" | "audio" | "ocr";
+  artifact?: ArtifactRef;
+  directInput?: {
+    patient?: Partial<any>;
+    consent?: Partial<any>;
+  };
+}
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
     if (req.method === "POST") {
-      const body = await readJsonBody<Partial<BioAgentInput>>(req);
+      const body = await readJsonBody<BioEndpointInput>(req);
       const { caseId, clinicianId } = extractRequestContext(req);
       const controller = await createSessionController({ caseId, clinicianId });
-      const snapshot = await controller.updateBio({
-        patient: body.patient ?? {},
-        consent: body.consent ?? {},
-      });
-      sendJson(res, 200, snapshot);
+
+      // Determine if this is legacy or multi-modal input
+      const isMultiModal = body.inputType !== undefined;
+
+      if (isMultiModal) {
+        // Handle new multi-modal input
+        const routerInput: InputRouterInput = {
+          inputType: body.inputType!,
+          directInput: body.directInput,
+          artifact: body.artifact,
+        };
+
+        const snapshot = await controller.updateBioMultiModal(routerInput);
+        sendJson(res, 200, {
+          ...snapshot,
+          inputMethod: "multi-modal",
+          processingFlow: snapshot.processingFlow,
+        });
+      } else {
+        // Handle legacy input format for backward compatibility
+        const legacyInput: BioAgentInput = {
+          inputType: "text",
+          patient: body.patient ?? {},
+          consent: body.consent ?? {},
+        };
+
+        const snapshot = await controller.updateBio(legacyInput);
+        sendJson(res, 200, {
+          ...snapshot,
+          inputMethod: "legacy",
+        });
+      }
+
       return;
     }
 
-    sendMethodNotAllowed(res, ["POST"]);
+    if (req.method === "GET") {
+      // Return current bio state and supported input types
+      const { caseId, clinicianId } = extractRequestContext(req);
+      const controller = await createSessionController({ caseId, clinicianId });
+      const currentState = await controller.getCurrentState();
+
+      sendJson(res, 200, {
+        patient: currentState.record.patient,
+        supportedInputTypes: ["text", "audio", "ocr"],
+        inputOptions: {
+          text: {
+            description: "Direct form input",
+            requiredFields: ["patient", "consent"],
+          },
+          audio: {
+            description: "Speech-to-text processing",
+            requiredFields: ["artifact"],
+            supportedFormats: ["mp3", "wav", "m4a"],
+          },
+          ocr: {
+            description: "Optical character recognition",
+            requiredFields: ["artifact"],
+            supportedFormats: ["jpg", "png", "pdf"],
+          },
+        },
+      });
+      return;
+    }
+
+    sendMethodNotAllowed(res, ["POST", "GET"]);
   } catch (error) {
     handleError(res, error);
   }
