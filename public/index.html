@@ -47,6 +47,10 @@
         <form id="bio-form" autocomplete="off" class="input-panel active">
           <div class="grid">
             <label>
+              <span>ID Number *</span>
+              <input name="idNumber" type="text" maxlength="20" required />
+            </label>
+            <label>
               <span>First name</span>
               <input name="firstName" type="text" maxlength="60" />
             </label>
@@ -55,12 +59,18 @@
               <input name="lastName" type="text" maxlength="60" />
             </label>
             <label>
-              <span>Preferred name</span>
-              <input name="preferredName" type="text" maxlength="60" />
+              <span>Gender</span>
+              <select name="gender">
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
+              </select>
             </label>
             <label>
-              <span>MRN</span>
-              <input name="mrn" type="text" maxlength="50" />
+              <span>Contact number</span>
+              <input name="contactNumber" type="tel" maxlength="20" />
             </label>
             <label>
               <span>Date of birth</span>
@@ -70,7 +80,20 @@
               <span>Age</span>
               <input name="age" type="number" min="0" max="120" />
             </label>
+            <label>
+              <span>Preferred name</span>
+              <input name="preferredName" type="text" maxlength="60" />
+            </label>
+            <label>
+              <span>MRN</span>
+              <input name="mrn" type="text" maxlength="50" />
+            </label>
           </div>
+
+          <label class="stacked">
+            <span>Address</span>
+            <textarea name="address" rows="3" placeholder="Street address, city, postal code"></textarea>
+          </label>
 
           <label class="stacked">
             <span>Clinical notes</span>
@@ -95,9 +118,8 @@
           </fieldset>
 
           <div class="actions">
-            <button type="button" id="check-input" class="check-btn">Check Input</button>
-            <button type="button" id="confirm-bio" disabled>Confirm bio intake</button>
-            <span id="save-status" class="status">Click "Check Input" to validate form</span>
+            <button type="button" id="confirm-bio">Confirm bio intake</button>
+            <span id="save-status" class="status">Ready to save bio data</span>
           </div>
         </form>
 

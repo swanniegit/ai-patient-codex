@@ -1,4 +1,4 @@
-export const registerBioForm = ({ form, checkButton, confirmButton, store, client }) => {
+export const registerBioForm = ({ form, confirmButton, store, client }) => {
   if (!form) {
     throw new Error("Missing bio form element");
   }
@@ -11,7 +11,7 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
       consent: {}
     };
 
-    // Get all text inputs
+    // Get all form inputs
     for (const [key, value] of formData.entries()) {
       const field = form.elements[key];
       if (!field) continue;
@@ -22,50 +22,38 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
         data.patient[key] = value ? Number(value) : undefined;
       } else if (key === "notes") {
         data.patient[key] = value.split('\n').filter(line => line.trim());
+      } else if (key === "address") {
+        data.patient[key] = value.trim() || undefined;
       } else {
-        data.patient[key] = value || undefined;
+        data.patient[key] = value.trim() || undefined;
       }
     }
 
-    return data;
-  };
-
-  // Check Input button - just validate without changing anything
-  if (checkButton) {
-    checkButton.addEventListener("click", async () => {
-      const data = collectFormData();
-
-      store.setState({ phase: "checking", message: "Checking input...", error: null });
-
-      try {
-        const response = await client.updateBio(data);
-
-        if (response.bio.missingFields.length === 0 && response.bio.consentValidated) {
-          confirmButton.disabled = false;
-          store.setState({
-            phase: "ready",
-            message: "✅ All required fields complete - ready to confirm",
-            error: null
-          });
-        } else {
-          const missing = response.bio.missingFields.join(", ") || "consent";
-          store.setState({
-            phase: "ready",
-            message: `❌ Missing: ${missing}`,
-            error: null
-          });
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Validation failed";
-        store.setState({ phase: "error", message, error: message });
+    // Also handle select elements that might not be in FormData
+    const selectElements = form.querySelectorAll('select');
+    selectElements.forEach(select => {
+      if (select.name && select.value) {
+        data.patient[select.name] = select.value;
       }
     });
-  }
+
+    return data;
+  };
 
   // Confirm button - send whatever data we have
   if (confirmButton) {
     confirmButton.addEventListener("click", async () => {
       const data = collectFormData();
+
+      // Simple validation - only ID number is required
+      if (!data.patient.idNumber) {
+        store.setState({
+          phase: "error",
+          message: "ID Number is required",
+          error: "ID Number is required"
+        });
+        return;
+      }
 
       store.setState({ phase: "saving", message: "Saving...", error: null });
 

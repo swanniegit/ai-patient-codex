@@ -97,7 +97,6 @@ client.setIdentity(identity);
 registerSessionRenderer({ store, elements });
 registerBioForm({
   form: elements.form,
-  checkButton: elements.checkButton,
   confirmButton: elements.confirmButton,
   store,
   client,

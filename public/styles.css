@@ -91,8 +91,15 @@ form {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 }
 
 label span,
@@ -104,21 +111,59 @@ legend {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem;
   color: var(--fg);
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    padding: 1rem;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    min-height: 44px;
+  }
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: var(--accent);
   outline: none;
+}
+
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+select option {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@media (max-width: 768px) {
+  select {
+    background-position: right 1rem center;
+    background-size: 1.2rem;
+    padding-right: 3rem;
+  }
 }
 
 textarea {
@@ -211,11 +256,82 @@ footer {
 
 @media (max-width: 640px) {
   body {
-    padding: 2.25rem 1rem 3rem;
+    padding: 1.5rem 1rem 2rem;
   }
 
   .panel {
-    padding: 1.3rem;
+    padding: 1.25rem;
+  }
+
+  .grid {
+    gap: 1.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+
+  .tagline {
+    font-size: 1rem;
+  }
+
+  fieldset {
+    padding: 1rem;
+  }
+
+  label span,
+  legend {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  textarea {
+    min-height: 100px;
+  }
+
+  .status {
+    font-size: 1rem;
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  .checkbox {
+    gap: 0.75rem;
+    font-size: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .checkbox input {
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  .method-options {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .method-option {
+    padding: 1.5rem;
+    min-height: 80px;
   }
 }
 
@@ -225,6 +341,13 @@ footer {
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   counter-reset: workflow-step;
+}
+
+@media (max-width: 768px) {
+  .timeline {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 }
 
 .timeline li {

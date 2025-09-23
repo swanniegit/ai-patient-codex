@@ -74,9 +74,13 @@ const renderMissingList = (listNode, missingFields) => {
 const renderFormValues = (form, record) => {
   if (!form || !record) return;
   const { patient } = record;
+  applyFieldValue(form, "idNumber", patient.idNumber ?? "");
   applyFieldValue(form, "firstName", patient.firstName ?? "");
   applyFieldValue(form, "lastName", patient.lastName ?? "");
   applyFieldValue(form, "preferredName", patient.preferredName ?? "");
+  applyFieldValue(form, "gender", patient.gender ?? "");
+  applyFieldValue(form, "contactNumber", patient.contactNumber ?? "");
+  applyFieldValue(form, "address", patient.address ?? "");
   applyFieldValue(form, "mrn", patient.mrn ?? "");
   applyFieldValue(form, "dateOfBirth", patient.dateOfBirth ?? "");
   applyFieldValue(form, "age", patient.age ?? "");
@@ -89,7 +93,7 @@ const renderFormValues = (form, record) => {
 
 const applyFieldValue = (form, name, value) => {
   const field = form.elements.namedItem(name);
-  if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
+  if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
     return;
   }
   const nextValue = String(value ?? "");
