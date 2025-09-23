@@ -7,6 +7,7 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
 
   let pendingPatch = null;
   let inFlightController = null;
+  let isValidating = false;
 
   const flushPatch = async () => {
     if (!pendingPatch) return;
@@ -71,7 +72,8 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
       // Collect form data and validate
       const allData = collectFormData();
 
-      store.setState({ phase: "checking", message: "Checking input...", error: null });
+      isValidating = true;
+      store.setState({ phase: "checking", message: "Checking input...", error: null, isValidating: true });
 
       try {
         // Send data to server for validation without saving
@@ -83,7 +85,8 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
           store.setState({
             phase: "ready",
             message: "✅ All required fields complete - ready to confirm",
-            error: null
+            error: null,
+            isValidating: false
           });
         } else {
           // Validation failed - show what's missing
@@ -92,13 +95,16 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
           store.setState({
             phase: "ready",
             message: `❌ Missing: ${missing}`,
-            error: null
+            error: null,
+            isValidating: false
           });
         }
       } catch (error) {
         confirmButton.disabled = true;
         const message = error instanceof Error ? error.message : "Validation failed";
-        store.setState({ phase: "error", message, error: message });
+        store.setState({ phase: "error", message, error: message, isValidating: false });
+      } finally {
+        isValidating = false;
       }
     });
   }

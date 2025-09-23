@@ -4,7 +4,7 @@ const stepIndexById = new Map(WORKFLOW_STEPS.map((step, index) => [step.id, inde
 
 export const registerSessionRenderer = ({ store, elements }) => {
   store.subscribe((state) => {
-    const { snapshot, phase, message } = state;
+    const { snapshot, phase, message, isValidating } = state;
 
     if (elements.statusMessage) {
       elements.statusMessage.textContent = message;
@@ -23,7 +23,12 @@ export const registerSessionRenderer = ({ store, elements }) => {
     renderRecordMeta(elements.recordMeta, snapshot.record);
     renderConsentBadge(elements.consentBadge, snapshot.bio);
     renderMissingList(elements.missingList, snapshot.bio.missingFields);
-    renderFormValues(elements.form, snapshot.record);
+
+    // Skip form rendering during validation to preserve user input
+    if (!isValidating) {
+      renderFormValues(elements.form, snapshot.record);
+    }
+
     // Removed automatic confirm button updates - now manual via Check Input button
     updateTimeline(elements.timeline, snapshot);
     renderSessionPhase(elements.sessionPhase, snapshot);
