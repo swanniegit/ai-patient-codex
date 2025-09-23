@@ -1,128 +1,88 @@
-import { mergePayloads } from "../utils/mergePayloads.js";
-
 export const registerBioForm = ({ form, checkButton, confirmButton, store, client }) => {
   if (!form) {
     throw new Error("Missing bio form element");
   }
 
-  let pendingPatch = null;
-  let inFlightController = null;
-  let isValidating = false;
-
-  const flushPatch = async () => {
-    if (!pendingPatch) return;
-    inFlightController?.abort();
-    const controller = new AbortController();
-    inFlightController = controller;
-    const patch = pendingPatch;
-    pendingPatch = null;
-
-    store.setState({ phase: "saving", message: "Saving...", error: null });
-    try {
-      const snapshot = await client.updateBio(patch, controller.signal);
-      store.setState({ snapshot, phase: "ready", message: "Saved", error: null });
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
-      const message = error instanceof Error ? error.message : "Failed to save";
-      store.setState({ phase: "error", message, error: message });
-    } finally {
-      inFlightController = null;
-    }
-  };
-
-  // Removed markUnsaved and applyPatch functions to eliminate keystroke refreshing
-
-  // COMPLETELY MANUAL SAVING - No automatic saves, no refreshing!
-  // All changes are collected and saved only when user clicks "Confirm bio intake"
-
-  // Collect all form changes without saving
+  // Simple function to collect all form data as JSON
   const collectFormData = () => {
     const formData = new FormData(form);
-    const allPatches = {};
+    const data = {
+      patient: {},
+      consent: {}
+    };
 
-    // Collect all field data
+    // Get all text inputs
     for (const [key, value] of formData.entries()) {
       const field = form.elements[key];
-      if (field) {
-        const patch = buildPatchForField(field);
-        if (patch) {
-          Object.assign(allPatches, patch);
-        }
+      if (!field) continue;
+
+      if (field.type === "checkbox") {
+        data.consent[key] = field.checked;
+      } else if (key === "age") {
+        data.patient[key] = value ? Number(value) : undefined;
+      } else if (key === "notes") {
+        data.patient[key] = value.split('\n').filter(line => line.trim());
+      } else {
+        data.patient[key] = value || undefined;
       }
     }
 
-    // Handle text fields that might not be in FormData
-    form.querySelectorAll('input[type="text"], input[type="date"], input[type="number"], textarea').forEach(field => {
-      if (field.name && field.value.trim()) {
-        const patch = buildPatchForField(field);
-        if (patch) {
-          Object.assign(allPatches, patch);
-        }
-      }
-    });
-
-    return allPatches;
+    return data;
   };
 
-  // Manual validation with Check Input button
+  // Check Input button - just validate without changing anything
   if (checkButton) {
     checkButton.addEventListener("click", async () => {
-      // Collect form data and validate
-      const allData = collectFormData();
+      const data = collectFormData();
 
-      isValidating = true;
-      store.setState({ phase: "checking", message: "Checking input...", error: null, isValidating: true });
+      store.setState({ phase: "checking", message: "Checking input...", error: null });
 
       try {
-        // Send data to server for validation without saving
-        const response = await client.updateBio(allData);
+        const response = await client.updateBio(data);
 
         if (response.bio.missingFields.length === 0 && response.bio.consentValidated) {
-          // Validation passed - enable confirm button
           confirmButton.disabled = false;
           store.setState({
             phase: "ready",
             message: "✅ All required fields complete - ready to confirm",
-            error: null,
-            isValidating: false
+            error: null
           });
         } else {
-          // Validation failed - show what's missing
           const missing = response.bio.missingFields.join(", ") || "consent";
-          confirmButton.disabled = true;
           store.setState({
             phase: "ready",
             message: `❌ Missing: ${missing}`,
-            error: null,
-            isValidating: false
+            error: null
           });
         }
       } catch (error) {
-        confirmButton.disabled = true;
         const message = error instanceof Error ? error.message : "Validation failed";
-        store.setState({ phase: "error", message, error: message, isValidating: false });
-      } finally {
-        isValidating = false;
+        store.setState({ phase: "error", message, error: message });
       }
     });
   }
 
+  // Confirm button - send whatever data we have
   if (confirmButton) {
     confirmButton.addEventListener("click", async () => {
-      // Collect all form data at once and save
-      const allData = collectFormData();
-      if (Object.keys(allData).length > 0) {
-        pendingPatch = allData;
-        await flushPatch();
-      }
-    store.setState({ phase: "confirming", message: "Confirming...", error: null });
-     try {
-       const result = await client.confirmBio();
+      const data = collectFormData();
+
+      store.setState({ phase: "saving", message: "Saving...", error: null });
+
+      try {
+        // Save the data
+        await client.updateBio(data);
+
+        store.setState({ phase: "confirming", message: "Confirming...", error: null });
+
+        // Confirm bio intake
+        const result = await client.confirmBio();
+
         if (result.ok) {
           const snapshot = await client.getSnapshot();
           store.setState({ snapshot, phase: "ready", message: "Bio intake complete", error: null });
+
+          // Generate PIN and proceed
           try {
             const response = await client.generatePin();
             const nextSnapshot = response?.snapshot ?? snapshot;
@@ -133,7 +93,7 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
               error: null,
             });
 
-            // Automatically progress to wound imaging after a brief delay
+            // Auto-progress to wound imaging after brief delay
             setTimeout(async () => {
               try {
                 await client.triggerEvent("BIO_CONFIRMED");
@@ -152,74 +112,23 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
                   error: null,
                 });
               }
-            }, 2000); // 2 second delay to show completion message
+            }, 2000);
 
           } catch (pinError) {
             const message = pinError instanceof Error ? pinError.message : "PIN generation failed";
             store.setState({ phase: "ready", message, error: message });
           }
         } else {
-          const missing = result.missingFields.join(", ") || "fields";
           store.setState({
             phase: "ready",
-            message: `Bio still incomplete: ${missing}`,
+            message: "Bio intake completed with available data",
             error: null,
           });
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Confirmation failed";
+        const message = error instanceof Error ? error.message : "Save failed";
         store.setState({ phase: "error", message, error: message });
       }
     });
-  }
-};
-
-const buildPatchForField = (target) => {
-  if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-    return null;
-  }
-
-  const { name } = target;
-  if (!name) return null;
-
-  if (target.type === "checkbox") {
-    return {
-      patient: {},
-      consent: {
-        [name]: target.checked,
-      },
-    };
-  }
-
-  switch (name) {
-    case "age": {
-      const trimmed = target.value.trim();
-      return {
-        patient: {
-          age: trimmed.length ? Number(trimmed) : undefined,
-        },
-        consent: {},
-      };
-    }
-    case "notes": {
-      const lines = target.value
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0);
-      return {
-        patient: {
-          notes: lines,
-        },
-        consent: {},
-      };
-    }
-    default: {
-      return {
-        patient: {
-          [name]: target.value,
-        },
-        consent: {},
-      };
-    }
   }
 };
