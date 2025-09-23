@@ -81,7 +81,6 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
           // Validation passed - enable confirm button
           confirmButton.disabled = false;
           store.setState({
-            snapshot: response,
             phase: "ready",
             message: "✅ All required fields complete - ready to confirm",
             error: null
@@ -91,7 +90,6 @@ export const registerBioForm = ({ form, checkButton, confirmButton, store, clien
           const missing = response.bio.missingFields.join(", ") || "consent";
           confirmButton.disabled = true;
           store.setState({
-            snapshot: response,
             phase: "ready",
             message: `❌ Missing: ${missing}`,
             error: null
